@@ -39,6 +39,7 @@
 # Imports
 import adi
 
+import socket
 import sys
 import time
 import matplotlib.pyplot as plt
@@ -48,9 +49,13 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from pyqtgraph.Qt import QtCore, QtGui
 
-# Instantiate all the Devices
-rpi_ip = "ip:phaser.local"  # IP address of the Raspberry Pi
-sdr_ip = "ip:192.168.2.1"  # "192.168.2.1, or pluto.local"  # IP address of the Transceiver Block
+# Auto-detect: running on the Phaser Pi locally, or remotely?
+if "phaser" in socket.gethostname():
+    rpi_ip = "ip:localhost"
+    sdr_ip = "ip:192.168.2.1"
+else:
+    rpi_ip = "ip:phaser.local"
+    sdr_ip = "ip:phaser.local:50901"
 my_sdr = adi.ad9361(uri=sdr_ip)
 my_phaser = adi.CN0566(uri=rpi_ip, sdr=my_sdr)
 

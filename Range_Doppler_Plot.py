@@ -39,6 +39,7 @@
 
 # %%
 # Imports
+import socket
 import sys
 import time
 import matplotlib
@@ -54,7 +55,7 @@ import adi
 print(adi.__version__)
 
 '''Key Parameters'''
-sample_rate = 4e6 
+sample_rate = 4e6
 center_freq = 2.1e9
 signal_freq = 100e3
 rx_gain = 60   # must be between -3 and 70
@@ -74,10 +75,13 @@ f = "saved_radar_data.npy"
 # %%
 """ Program the basic hardware settings
 """
-# Instantiate all the Devices
-rpi_ip = "ip:phaser.local"  # IP address of the Raspberry Pi
-sdr_ip = "ip:192.168.2.1"  # "192.168.2.1, or pluto.local"  # IP address of the Transceiver Block
-#sdr_ip = "ip:phaser.local:50901"  # using IIO context port forwarding
+# Auto-detect: running on the Phaser Pi locally, or remotely?
+if "phaser" in socket.gethostname():
+    rpi_ip = "ip:localhost"
+    sdr_ip = "ip:192.168.2.1"
+else:
+    rpi_ip = "ip:phaser.local"
+    sdr_ip = "ip:phaser.local:50901"
 my_sdr = adi.ad9361(uri=sdr_ip)
 my_phaser = adi.CN0566(uri=rpi_ip, sdr=my_sdr)
 
