@@ -1,0 +1,6899 @@
+=== docs/ADAR1000.pdf ===
+Pages: 79, Title: ADAR1000 8 GHz to 16 GHz, 4-Channel, X Band and Ku Band Beamformer (Rev.B)
+Author: Analog Devices, Inc.
+
+--- Page 1/79 ---
+Data Sheet
+ADAR1000
+8 GHz to 16 GHz, 4-Channel, X Band and Ku Band Beamformer
+Rev. B
+DOCUMENT FEEDBACK
+ 
+TECHNICAL SUPPORT
+Information furnished by Analog Devices is believed to be accurate and reliable "as is". However, no responsibility is assumed by Analog
+Devices for its use, nor for any infringements of patents or other rights of third parties that may result from its use. Specifications subject to
+change without notice. No license is granted by implication or otherwise under any patent or patent rights of Analog Devices. Trademarks and
+registered trademarks are the property of their respective owners.
+FEATURES
+►8 GHz to 16 GHz frequency range
+►Half-duplex for transmit and receive modes
+►Single-pin transmit and receive control
+►360° phase adjustment range
+►2.8° phase resolution
+►≥31 dB gain adjustment range
+►≤0.5 dB gain resolution
+►Bias and control for external transmit and receive modules
+►Memory for 121 prestored beam positions
+►Four −20 dBm to +10 dBm power detectors
+►Integrated temperature sensor
+►Integrated 8-bit ADC for power detectors and temperature sen-
+sor
+►Programmable bias modes
+►4-wire SPI interface
+APPLICATIONS
+►Phased array radar
+►Satellite communications systems
+GENERAL DESCRIPTION
+The ADAR1000 is a 4-channel, X and Ku frequency band, beam-
+forming core chip for phased arrays. This device operates in half-
+duplex between receive and transmit modes. In receive mode, input
+signals pass through four receive channels and are combined and
+output at the common RF_IO pin. In transmit mode, the RF_IO
+input signal is split and passes through the four transmit channels.
+In both modes, the ADAR1000 provides a ≥31 dB gain adjustment
+range and a full 360° phase adjustment range in each radio fre-
+quency (RF) channel, with 6-bit resolution (less than ≤0.5 dB and
+2.8°, respectively).
+A simple 4-wire serial port interface (SPI) controls all of the on-chip
+registers. In addition, two address pins allow SPI control of up
+to four devices on the same serial lines. Dedicated transmit and
+receive load pins also provide synchronization of all ADAR1000
+chips in the same array, and a single pin controls fast switching
+between the transmit and receive modes.
+The ADAR1000 is fabricated in a silicon-germanium, bipolar CMOS
+(BiCMOS) process. The device is available in a compact, 88-termi-
+nal, 7 mm × 7 mm, LGA package and is specified from −40°C to
++85°C.
+FUNCTIONAL BLOCK DIAGRAM
+Figure 1.
+
+
+--- Page 2/79 ---
+Data Sheet
+ADAR1000
+TABLE OF CONTENTS
+analog.com
+Rev. B | 2 of 79
+Features................................................................ 1
+Applications........................................................... 1
+General Description...............................................1
+Functional Block Diagram......................................1
+Specifications........................................................ 5
+Timing Specifications......................................... 8
+Absolute Maximum Ratings................................. 11
+Thermal Resistance..........................................11
+ESD Caution.....................................................11
+Pin Configuration and Function Descriptions...... 12
+Typical Performance Characteristics...................15
+Equivalent Circuits...............................................27
+Theory of Operation.............................................28
+RF Path............................................................ 28
+Digital Interface................................................ 28
+Phase and Gain Control...................................29
+Receive Output Noise and Noise Figure..........29
+Transmit and Receive Control..........................29
+RF Subcircuit Bias Control .............................. 30
+RF Subcircuit Enables and Disables................30
+Power Detectors ..............................................31
+External Amplifier Bias Drivers ........................31
+External Switch Control....................................31
+ADC Operation.................................................32
+Chip Addressing...............................................32
+Memory Access................................................32
+Calibration ....................................................... 34
+Memory Address Decoding..............................34
+Memory Map.................................................... 34
+Applications Information...................................... 35
+Gain Control Registers.....................................35
+Switched Attenuator Control.............................35
+Phase Control Registers.................................. 36
+Transmit and Receive Subcircuit Control......... 37
+Transmit and Receive Switch Driver Control....38
+PA Bias Output Control.................................... 39
+LNA Bias Output Control..................................40
+PA Bias, LNA Bias, and Switch Bias Setup
+Examples........................................................41
+Transmit/Receive Delay Control.......................43
+ADAR1000 and ADTR1107..............................44
+Powering the ADAR1000................................. 45
+Return Loss While Powered Down...................47
+SPI Considerations ..........................................47
+SPI Programming Example..............................50
+Register Map....................................................... 53
+Register Descriptions....................................... 57
+Outline Dimensions............................................. 79
+Ordering Guide.................................................79
+Evaluation Boards............................................ 79
+REVISION HISTORY
+7/2022—Rev. A to Rev. B
+Changes to General Description Section.........................................................................................................1
+Changes to Specifications Section and Table 1...............................................................................................5
+Added Minimum Clock Period (1/ tSCLK) Parameter and Note 1, Table 2........................................................ 9
+Changes to Timing Diagrams Section, Figure 3 Caption, and Figure 4 Caption............................................. 9
+Added Figure 5, Renumbered Sequentially...................................................................................................10
+Changes to SPI Block Write Mode Section....................................................................................................10
+Changed SPI Write All Mode Section to SPI Write/Read All Mode Section.................................................. 10
+Changes to SPI Write/Read All Mode Section...............................................................................................10
+Added Note 1, Table 3....................................................................................................................................11
+Changes to Thermal Resistance Section and Table 4................................................................................... 11
+Changes to Figure 9 and Table 5...................................................................................................................12
+Changes to Typical Performance Characteristics Section.............................................................................15
+Added Equivalent Circuits Section.................................................................................................................27
+Moved Figure 10 to Figure 16........................................................................................................................27
+Changes to RF Path Section......................................................................................................................... 28
+Added Digital Interface Section and Figure 90.............................................................................................. 28
+Changes to Phase and Gain Control Section................................................................................................ 29
+Added Receive Output Noise and Noise Figure Section............................................................................... 29
+Moved Transmit and Receive Control Section...............................................................................................29
+Added RF Subcircuit Enables and Disables Section..................................................................................... 30
+
+
+--- Page 3/79 ---
+Data Sheet
+ADAR1000
+TABLE OF CONTENTS
+analog.com
+Rev. B | 3 of 79
+Changes to Table 6........................................................................................................................................30
+Added Figure 93 and Figure 94..................................................................................................................... 30
+Changes to Power Detectors Section............................................................................................................31
+Moved Figure 94............................................................................................................................................31
+Changed External Amplifier Bias DACs Section to External Amplifier Bias Drivers Section......................... 31
+Changes to External Amplifier Bias Drivers Section......................................................................................31
+Moved Figure 95............................................................................................................................................31
+Changes to External Switch Control Section................................................................................................. 31
+Moved Figure 96 and Figure 97.....................................................................................................................31
+Changes to ADC Operation Section.............................................................................................................. 32
+Added Table 7, Renumbered Sequentially.....................................................................................................32
+Changes to Chip Addressing Section............................................................................................................ 32
+Changes to Memory Access Section.............................................................................................................32
+Added Single Memory Fetch Section.............................................................................................................32
+Added Bias Setting Memory Fetch Section................................................................................................... 33
+Added Sequencing Through Memory Beam Positions Section..................................................................... 33
+Added Toggling Between RAM and Registers Section..................................................................................33
+Added Memory Counter Attributes Section....................................................................................................34
+Added Memory Address Decoding Section and Table 8................................................................................34
+Deleted Table 8 to Table 12........................................................................................................................... 34
+Added Memory Map Section..........................................................................................................................34
+Changes to Gain Control Registers Section.................................................................................................. 35
+Changes to Switched Attenuator Control Section and Table 8...................................................................... 35
+Changes to Phase Control Registers Section and Table 9............................................................................36
+Changes to Transmit and Receive Subcircuit Control Section...................................................................... 37
+Changed TR_SOURCE = 0 (SPI Control) Section to SPI Control (TR_SOURCE = 0) Section.................... 37
+Changed TR_SOURCE = 1 (TR Pin Control) Section to TR Pin Control (TR_SOURCE = 1) Section..........37
+Changes to Transmit and Receive Switch Driver Control Section and Table 13........................................... 38
+Changes to PA Bias Output Control Section..................................................................................................39
+Added Table 15..............................................................................................................................................39
+Moved Table 16..............................................................................................................................................39
+Changes to LNA Bias Output Control Section and Table 18..........................................................................40
+Added Table 17..............................................................................................................................................40
+Added PA Bias, LNA Bias, and Switch Bias Setup Examples Section.......................................................... 41
+Added PA Bias Setup for TR Pin Control Example Section and Table 19..................................................... 41
+Added PA Bias Setup for SPI Control Example Section and Table 20.......................................................... 41
+Added LNA Bias Setup for TR Pin Control Example Section and Table 21...................................................41
+Added LNA Bias Setup for SPI Control Example Section and Table 22........................................................42
+Added Allowable PA and LNA States While in SPI Control Section and Table 23.........................................42
+Added Switch Bias Setup for TR Control Example Section and Table 24..................................................... 42
+Added Switch Bias Setup for SPI Control Example Section and Table 25.................................................... 42
+Changes to Transmit/Receive Delay Control Section....................................................................................43
+Added PA Bias Silicon Error When Using Delay Section...............................................................................43
+Added ADAR1000 and ADTR1107 Section...................................................................................................44
+Added Interfacing Section..............................................................................................................................44
+Added Supply and Bias Sequencing Section and Figure 97......................................................................... 44
+Added Setting the ADAR1000 TR_SW_POS Section................................................................................... 45
+Added Setting the ADAR1000 PA_BIASx Pins Section.................................................................................45
+Added Setting the ADAR1000 LNA_BIAS Pin Section..................................................................................45
+
+
+--- Page 4/79 ---
+Data Sheet
+ADAR1000
+TABLE OF CONTENTS
+analog.com
+Rev. B | 4 of 79
+Moved Powering the ADAR1000 Section...................................................................................................... 45
+Changes to Figure 98 Caption to Figure 101 Caption................................................................................... 45
+Added Return Loss While Powered Down Section and Figure 103 to Figure 105........................................ 47
+Added SPI Considerations Section and Table 27.......................................................................................... 47
+Added Register 0x00 Section........................................................................................................................ 47
+Added SDO Readback Problem and Solution Section, Table 28, and Table 29............................................48
+Added SDO Bus Connections Section and Figure 106................................................................................. 49
+Changes to Table 30 and Note 1, Table 31....................................................................................................50
+Changes to Table 32......................................................................................................................................53
+Changes to Register Descriptions Section.................................................................................................... 57
+Deleted Table 26............................................................................................................................................57
+Changes to Table 43 to Table 46................................................................................................................... 60
+Changes to Table 55 to Table 58................................................................................................................... 63
+Changes to Table 67......................................................................................................................................66
+Changes to Table 76 and Table 77................................................................................................................ 69
+Changes to Table 83......................................................................................................................................72
+Changes to Table 108....................................................................................................................................78
+
+
+--- Page 5/79 ---
+Data Sheet
+ADAR1000
+SPECIFICATIONS
+analog.com
+Rev. B | 5 of 79
+AVDD1 = −5 V, AVDD3 = +3.3 V, TA = 25°C, and the device is programmed to the maximum channel gain and the nominal bias conditions on
+all channels, unless otherwise noted. Nominal bias register settings: Register 0x034 = 0x08, Register 0x035 = 0x55, Register 0x036 = 0x2D,
+and Register 0x37 = 0x06. Low power bias register settings: Register 0x034 = 0x05, Register 0x035 = 0x1A, Register 0x036 = 0x2A, and
+Register 0x37 = 0x03.
+Table 1.
+Parameter
+Test Conditions/Comments
+Min
+Typ
+Max
+Unit
+OPERATING CONDITIONS
+RF Range
+8
+16
+GHz
+Operating Temperature
+−40
++85
+°C
+TRANSMIT SECTION
+RF_IO, TX1, TX2, TX3, and TX4 pins
+Maximum Single Channel Gain1
+9.5 GHz
+21
+dB
+11.5 GHz
+19
+dB
+14 GHz
+16
+dB
+Gain Flatness vs. Frequency
+Across any 1 GHz bandwidth
+dB
+From 9 GHz to 14 GHz
+±1.0
+dB
+From 8 GHz to 15 GHz
+±1.7
+dB
+Gain Variation vs. Temperature
+11.5 GHz
+±2.5
+dB
+Output 1 dB Compression (P1dB)
+Maximum gain setting
+Nominal Bias Setting
+9.5 GHz
+10
+dBm
+11.5 GHz
+10
+dBm
+14 GHz
+10
+dBm
+Low Bias Setting
+9.5 GHz
+6
+dBm
+11.5 GHz
+8
+dBm
+14 GHz
+7
+dBm
+Saturated Power (PSAT)
+Maximum gain setting
+Nominal Bias Setting
+9.5 GHz
+14
+dBm
+11.5 GHz
+14
+dBm
+14 GHz
+13
+dBm
+Low Bias Setting
+9.5 GHz
+14
+dBm
+11.5 GHz
+14
+dBm
+14 GHz
+13
+dBm
+Gain Resolution
+≤0.5
+dB
+Root Mean Square (RMS) Gain Error
+Over phase settings and frequencies
+0.2
+dB
+Phase Adjustment Range
+360
+Degrees
+Phase Resolution
+2.8
+Degrees
+RMS Phase Error
+Over phase settings and frequencies
+2
+Degrees
+Noise Figure
+Maximum gain setting
+Nominal Bias Setting
+9.5 GHz
+22
+dB
+11.5 GHz
+23
+dB
+14 GHz
+25
+dB
+Low Bias Setting
+9.5 GHz
+22
+dB
+11.5 GHz
+23
+dB
+14 GHz
+25
+dB
+
+
+--- Page 6/79 ---
+Data Sheet
+ADAR1000
+SPECIFICATIONS
+analog.com
+Rev. B | 6 of 79
+Table 1.
+Parameter
+Test Conditions/Comments
+Min
+Typ
+Max
+Unit
+Channel to Channel Isolation2
+−40
+dB
+Transmit Output to RF_IO
+Maximum gain setting, 9.5 GHz
+−60
+dB
+Output Return Loss
+TX1, TX2, TX3, or TX4 pin
+−10
+dB
+Input Return Loss
+RF_IO pin
+−12
+dB
+Output Third-Order Intercept (IP3)
+Maximum gain setting, 1 MHz carrier spacing
+Nominal Bias Setting
+9.5 GHz
+20
+dBm
+11.5 GHz
+21
+dBm
+14 GHz
+22
+dBm
+Low Bias Setting
+9.5 GHz
+15
+dBm
+11.5 GHz
+16
+dBm
+14 GHz
+16
+dBm
+RECEIVE SECTION
+Maximum Single Channel Gain3
+Nominal bias setting
+9.5 GHz
+10
+dB
+11.5 GHz
+9
+dB
+14 GHz
+7
+dB
+Maximum Electronic Gain4
+Nominal bias setting
+9.5 GHz
+16
+dB
+11.5 GHz
+15
+dB
+14 GHz
+13
+dB
+Maximum Coherent Gain5
+Nominal bias setting
+9.5 GHz
+22
+dB
+11.5 GHz
+21
+dB
+14 GHz
+19
+dB
+Gain Flatness
+Across any 1 GHz bandwidth
+From 9 GHz to 14 GHz
+±1.0
+dB
+From 8 GHz to 15 GHz
+±1.7
+dB
+Gain Variation vs. Temperature
+11.5 GHz
+±3
+dB
+Input P1dB
+Unmeasured paths enabled and terminated with
+50 Ω
+Nominal Bias Setting
+9.5 GHz
+−16
+dBm
+11.5 GHz
+−16
+dBm
+14 GHz
+−15
+dBm
+Low Bias Setting
+9.5 GHz
+−13
+dBm
+11.5 GHz
+−12
+dBm
+14 GHz
+−10
+dBm
+Input IP3
+Maximum gain setting, carrier spacing 1 MHz;
+unmeasured paths enabled and terminated with
+50 Ω
+Nominal Bias Setting
+9.5 GHz
+−7
+dBm
+11.5 GHz
+−7
+dBm
+14 GHz
+−6
+dBm
+Low Bias Setting
+9.5 GHz
+−7
+dBm
+
+
+--- Page 7/79 ---
+Data Sheet
+ADAR1000
+SPECIFICATIONS
+analog.com
+Rev. B | 7 of 79
+Table 1.
+Parameter
+Test Conditions/Comments
+Min
+Typ
+Max
+Unit
+11.5 GHz
+−6
+dBm
+14 GHz
+−5
+dBm
+Gain Adjustment Range
+Variable gain amplifier (VGA) and step attenuator
+≥31
+dB
+Gain Resolution
+≤0.5
+dB
+RMS Gain Error
+0.2
+dB
+Phase Adjustment Range
+360
+Degrees
+Phase Resolution
+2.8
+Degrees
+RMS Phase Error
+2
+Degrees
+Noise Figure
+Maximum gain setting; unmeasured paths
+disabled and terminated with 50 Ω
+Nominal Bias Setting
+9.5 GHz
+8
+dB
+11.5 GHz
+8
+dB
+14 GHz
+9
+dB
+Low Bias Setting
+9.5 GHz
+9
+dB
+11.5 GHz
+10
+dB
+14 GHz
+11
+dB
+Channel to Channel Isolation6
+40
+dB
+RF_IO to Receive Isolation
+60
+dB
+Input Return Loss
+−10
+dB
+Output Return Loss
+RF_IO pin
+−12
+dB
+TEMPERATURE SENSOR
+Range
+−40
++85
+°C
+Slope
+0.8
+LSB/°C
+Nominal Analog-to-Digital Converter (ADC)
+Output
+Power-on reset (POR) mode (transmit and
+receive not enabled), TA = 25°C
+145
+Decimal
+Resolution
+8
+Bits
+TRANSMIT AND RECEIVE SWITCHING
+TX_LOAD, RX_LOAD, and TR pins
+Transmit and Receive Switching Time
+From rising/falling edge of TR at 50% to RF at
+90%
+180
+ns
+Phase and Gain Switching Time
+From rising edge of TX_LOAD or RX_LOAD at
+50% to RF at 90%
+20
+ns
+POWER DETECTOR
+DET1, DET2, DET3, and DET4 pins
+RF Input Power Range
+11.5 GHz
+−20
++10
+dBm
+Input Return Loss
+−10
+dB
+Nominal ADC Output Code
+Input power (PIN) = 0 dBm, 11.5 GHz
+60
+Decimal
+Resolution
+8
+Bits
+POWER AMPLIFIER (PA) DIGITAL-TO-ANALOG
+CONVERTER (DAC)
+PA_BIAS1, PA_BIAS2, PA_BIAS3, and
+PA_BIAS4 pins
+Resolution
+8
+Bits
+Voltage Range
+−4.8 to 0
+V
+Source and Sink Current
+−10 to +10
+mA
+Off to On Switching Time
+From TR or CSB at 50% to VOUT at 90%, VOUT
+from −1 V to −2 V, 1 nF CLOAD
+60
+ns
+On to Off Switching Time
+From TR or CSB at 50% to VOUT at 10%, VOUT
+from −1 V to −2 V, 1 nF CLOAD
+60
+ns
+LOW NOISE AMPLIFIER (LNA) DAC
+LNA_BIAS pin
+Resolution
+8
+Bits
+
+
+--- Page 8/79 ---
+Data Sheet
+ADAR1000
+SPECIFICATIONS
+analog.com
+Rev. B | 8 of 79
+Table 1.
+Parameter
+Test Conditions/Comments
+Min
+Typ
+Max
+Unit
+Voltage Range
+−4.8 to 0
+V
+Source and Sink Current
+−10 to+10
+mA
+Off to On Switching Time
+From TR or CSB at 50% to VOUT at 90%, VOUT
+from −2 V to −1 V, 1 nF CLOAD
+60
+ns
+On to Off Switching Time
+From TR or CSB at 50% to VOUT at 10%, VOUT
+from −1 V to −2 V, 1 nF CLOAD
+60
+ns
+TRANSMIT AND RECEIVE MODULE CONTROL
+TR_SW_POS, TR_SW_NEG, TR_POL pins
+Voltage Range
+TR_SW_NEG, TR_POL
+−4.8 to 0
+V
+TR_SW_POS
+0 to 3.2
+V
+Off to On Switching Time
+From TR or CSB at 50% to VOUT at 90%
+15
+ns
+On to Off Switching Time
+From TR or CSB at 50% to VOUT at 10%
+15
+ns
+LOGIC INPUTS7
+TR, RX_LOAD, TX_LOAD, CSB, SCLK, and
+SDIO pins
+Input High Voltage (VIH)
+1.0
+V
+Input Low Voltage (VIL)
+0.4
+V
+High and Low Input Current (IINH, IINL)
+±1
+µA
+Input Capacitance (CIN)
+1
+pF
+LOGIC OUTPUTS
+SDO and SDIO pins
+Output High Voltage (VOH)
+Output high current (IOH) = 0 mA (open circuit)
+1.8
+V
+Output Low Voltage (VOL)
+Output low current (IOL) = 0 mA (open circuit)
+0
+V
+Output High Voltage (VOH)
+Output high current (IOH) = −10 mA
+1.4
+V
+Output Low Voltage (VOL)
+Output low current (IOL) = 10 mA
+0.4
+V
+POWER SUPPLIES
+AVDD1
+−5.25
+−5
+−4.75
+V
+AVDD3
+3.1
+3.3
+3.5
+V
+IAVDD1
+Quiescent (reset state)
+−4
+mA
+IAVDD1
+PA bias outputs fully loaded
+−50
+mA
+IAVDD3
+Reset Mode (Standby)
+23
+mA
+Transmit Mode
+Four channels enabled, nominal bias
+350
+mA
+Four channels enabled, low bias setting
+240
+mA
+Receive Mode
+Four channels enabled, nominal bias
+260
+mA
+Four channels enabled, low bias setting
+160
+mA
+1 Single channel transmit gain defined as the ratio of output power at any Tx output port to the input power applied to the RF_IO port.
+2 From one transmit channel port to another, both channels must be set to the maximum gain.
+3 Single channel receive gain is the ratio of the output power at RF_IO to the input power applied to any single receive port, with the other three receive ports terminated in
+50 Ω.
+4 Electronic gain is the ratio of the output power at RF_IO to the input power applied to any single receive port, with the other three receive ports driven and phased for
+coherent combining with 6 dB subtracted. The electronic gain is approximately 6 dB higher than the single path gain, and 6 dB lower than coherent gain.
+5 Coherent gain is the ratio of output power at RF_IO to the input power applied to any single receive port, with the other three receive ports driven and phased for coherent
+combining.
+6 From one receive channel port to another, both channels must be set to the maximum gain.
+7 Inputs have 100 mV (typical) of hysteresis.
+TIMING SPECIFICATIONS
+AVDD1 = −5 V, AVDD3 = +3.3 V, TA = 25°C, unless otherwise noted.
+
+
+--- Page 9/79 ---
+Data Sheet
+ADAR1000
+SPECIFICATIONS
+analog.com
+Rev. B | 9 of 79
+Table 2. SPI Timing
+Parameter
+Min
+Typ
+Max
+Unit
+Test Conditions/Comments
+Maximum Clock Rate (tSCLK)
+25
+MHz
+Minimum Clock Period (1/tSCLK)1
+40
+ns
+Minimum Pulse Width High (tPWH)1
+10
+ns
+Minimum Pulse Width Low (tPWL)1
+10
+ns
+Setup Time, SDIO to SCLK (tDS)
+5
+ns
+Hold Time, SDIO to SCLK (tDH)
+5
+ns
+Data Valid, SDO to SCLK (tDV)
+5
+ns
+Setup Time, CSB to SCLK (tDCS)
+10
+ns
+SDIO, SDO Rise Time (tR)
+4
+ns
+Outputs loaded with 80 pF, 10% to 90%
+SDIO, SDO Fall Time (tF)
+4
+ns
+Outputs loaded with 80 pF, 10% to 90%
+1 Clock Period = (Pulse Width High) + (Pulse Width Low); but (Minimum Clock Period) = (Minimum Pulse Width High) + (Minimum Pulse Width Low). The clock period allows
+SPI signals that are not 50% duty cycle. I Minimum Pulse Width High = 10 ns, then Minimum Pulse Width Low = 30 ns, or vice versa.
+Timing Diagrams
+The standard Analog Devices, Inc., SPI transaction is 24 bits in length, although longer SPI transactions are possible. Figure 2 shows a
+generalized SPI transaction, that is either 24 bits or more (in additional 8-bit increments). See the SPI Block Write Mode section for more details
+on longer than 24-bit SPI transactions. All timing diagrams show MSB clocked in first. In a 24-bit SPI transaction, the data is latched into the
+ADAR1000 on the SCLK rising edge of the last data bit clocked in (D_LSB).
+Figure 2. Serial Port Interface Register Timing (MSB First)
+Figure 3. Timing Diagram for 4-Wire or 3-Wire Serial Port Interface Register Write
+Figure 4. Timing Diagram for 4-Wire Serial Port Interface Register Read
+
+
+--- Page 10/79 ---
+Data Sheet
+ADAR1000
+SPECIFICATIONS
+analog.com
+Rev. B | 10 of 79
+Figure 5. Timing Diagram for 3-Wire Serial Port Interface Register Read
+Note that in 3-wire mode, the SDIO pin becomes an output pin after receiving the instruction address header with a readback request. In this
+mode, the SDIO must be changed from an input to an output in the ½ cycle of SCLK between the last rising edge of SCLK of the instruction and
+the following falling edge.
+SPI Block Write Mode
+Data can be written to the SPI registers in a block write mode, where the register address automatically increments, and data for consecutive
+registers can be written without sending new address bits. Data writing can be continued indefinitely until CSB is raised again, ending the write
+process. Data for each register is latched into the ADAR1000 on the SCLK rising edge of the last data bit, which is shown as D0 in Figure 6.
+Figure 6. Timing Diagram for Block Write Mode
+SPI Write/Read All Mode
+Data can be written to the SPI registers in a write all mode, where the data is written to all chips connected to the SPI bus with a single
+write command, regardless of the ADDR1 and ADDR0 values, by setting address Bits[A14:A11] = 0001. The write all mode allows the user
+to broadcast the same data, to all ADAR1000 devices sharing the SPI bus, with a single SPI write. If the user has dedicated SDO lines on
+the PCB, data can be simultaneously read from the SPI registers from several ADAR1000 devices in the read all mode. This mode is initiated
+by setting Bits[A14:A11] = 0001, and setting the R/W bit = 1 for a read all. Note that this write or read all capability is only applicable to
+the registers, and not applicable to the random access memory (RAM) space. The RAM space is accessed when Bit 12 = 1. The user must
+consider the chip ID bits, Bits[14:13], when writing data to the RAM.
+Figure 7. SPI Write All Instruction and Timing Diagram
+
+
+--- Page 11/79 ---
+Data Sheet
+ADAR1000
+ABSOLUTE MAXIMUM RATINGS
+analog.com
+Rev. B | 11 of 79
+Table 3.
+Parameter
+Rating
+AVDD1 to GND
+−5.5 V
+AVDD3 to GND
+3.6 V
+Digital Input/Output Voltage to GND
+2.0 V
+Maximum RF Input Power1
+20 dBm
+Operating Temperature Range
+−40°C to +85°C
+Storage Temperature Range
+−65°C to +150°C
+Reflow Soldering
+Peak Temperature
+260°C
+Junction Temperature (TJ)
+135°C
+Electrostatic Discharge (ESD)
+Charged Device Model (CDM)
+±500 V
+Human Body Model (HBM)
+±2500 V
+1 Applicable to any receive or transmit input.
+Stresses at or above those listed under Absolute Maximum Ratings
+may cause permanent damage to the product. This is a stress
+rating only; functional operation of the product at these or any other
+conditions above those indicated in the operational section of this
+specification is not implied. Operation beyond the maximum operat-
+ing conditions for extended periods may affect product reliability.
+THERMAL RESISTANCE
+Thermal performance is directly linked to printed circuit board
+(PCB) design and operating environment. The PCB thermal design
+requires careful attention.
+θJA is the junction to the ambient with the exposed pad soldered
+down, θJC-TOP is the junction to the top of the package, and
+θJC-BOTTOM is the junction to the exposed pad on the bottom of the
+package.
+Table 4. Thermal Resistance
+Package Type
+θJA
+θJC-TOP
+θJC-BOTTOM
+Unit
+CC-88-11
+18.7
+9.72
+10.1
+°C/W
+1 Simulated based on PCB specified in JESD-51.
+2 Simulated with cold plate attached on top of the package using 100 μm of
+thermal interface material (3.6 W/mK).
+ESD CAUTION
+ESD (electrostatic discharge) sensitive device. Charged devi-
+ces and circuit boards can discharge without detection. Although
+this product features patented or proprietary protection circuitry,
+damage may occur on devices subjected to high energy ESD.
+Therefore, proper ESD precautions should be taken to avoid
+performance degradation or loss of functionality.
+
+
+--- Page 12/79 ---
+Data Sheet
+ADAR1000
+PIN CONFIGURATION AND FUNCTION DESCRIPTIONS
+analog.com
+Rev. B | 12 of 79
+Figure 8. Pin Configuration (Top View)
+Figure 9. Pin Configuration, Color Coded (Top View)
+Table 5. Pin Function Descriptions
+Pin No.
+Mnemonic
+Description
+A1
+DET3
+Channel 3 Power Detector Input. DET3 is internally ac-coupled and enabled by Register 0x030, Bit 1. The
+nominal operating input power range is −20 dBm to +10 dBm. If this pin is unused, it is recommended to leave
+the detector disabled and either provide a 50 Ω termination or ground the input.
+A2, A6, A8, A12, A13, B1, B2, B6
+to B10, B12, B13, C2, C12, D1,
+D2, D12, D13, E2, E12, F1, F2,
+F12, F13, G2, G12, H1, H2, H12,
+H13, J2, J12, K1, K2, K12, K13,
+L2, L12, M1, M2, M7, M12, M13,
+N1, N7, N8, N12
+GND
+RF Ground. Tie all ground pins together to a low impedance plane on the PCB board.
+A3
+TR_SW_NEG
+Gate Control Output for External Transmit and Receive Switch (0 V or −5 V). Pin is floating upon power up or
+after a soft reset.
+A4
+PA_BIAS4
+Gate Bias Output for Channel 4 External PA. Output ranges from 0 to −4.8 V, controlled by a combination of
+the PA_ON pin, Register 0x02C (CH4_PA_BIAS_ON value), and Register 0x049 (CH4_PA_BIAS_OFF value).
+Output is set to the CH4_PA_BIAS_OFF value if the PA_ON pin is at logic low. Pin assumes CH4_PA_BIAS_ON
+default value upon power up or soft reset.
+A5
+PA_BIAS3
+Gate Bias Output for Channel 3 External PA. Output ranges from 0 to −4.8 V, controlled by a combination of
+the PA_ON pin, Register 0x02B (CH3_PA_BIAS_ON value), and Register 0x048 (CH3_PA_BIAS_OFF value).
+
+
+--- Page 13/79 ---
+Data Sheet
+ADAR1000
+PIN CONFIGURATION AND FUNCTION DESCRIPTIONS
+analog.com
+Rev. B | 13 of 79
+Table 5. Pin Function Descriptions
+Pin No.
+Mnemonic
+Description
+Output is set to the CH3_PA_BIAS_OFF value if the PA_ON pin is at logic low. Pin assumes CH3_PA_BIAS_ON
+default value upon power up or soft reset.
+A7
+RF_IO
+Common RF Pin for Input in Transmit Mode and Output in Receive Mode. The signal path is ac-coupled via an
+on-chip capacitor. The dc bias is 0 V due to the on-chip shunt inductor.
+A9
+PA_BIAS2
+Gate Bias Output for Channel 2 External PA. Output ranges from 0 to −4.8 V, controlled by a combination of
+the PA_ON pin, Register 0x02A (CH2_PA_BIAS_ON value), and Register 0x047 (CH2_PA_BIAS_OFF value).
+Output is set to the CH2_PA_BIAS_OFF value if the PA_ON pin is at logic low. Pin assumes CH2_PA_BIAS_ON
+default value upon power up or soft reset.
+A10
+PA_BIAS1
+Gate Bias Output for Channel 1 External PA. Output ranges from 0 to −4.8 V, controlled by a combination of
+the PA_ON pin, Register 0x029 (CH1_PA_BIAS_ON value), and Register 0x046 (CH1_PA_BIAS_OFF value).
+Output is set to the CH1_PA_BIAS_OFF value if the PA_ON pin is at logic low. Pin assumes CH1_PA_BIAS_ON
+default value upon power up or soft reset.
+A11
+LNA_BIAS
+Gate Bias Output for External LNA. Output ranges from 0 to −4.8 V, controlled by a combination of
+Register 0x030 (Bit 4, LNA_BIAS_OUT_EN), Register 0x02D (LNA_BIAS_ON value), and Register 0x04A
+(LNA_BIAS_OFF value). Output floats if Register 0x030, Bit 4 is at logic low. Pin is floating upon power up or
+after a soft reset.
+B3
+PA_ON
+PA Enable Input. This pin is used when device transmit/receive operation is controlled via the TR pin. This
+pin is not used with SPI control. When BIAS_CTRL (Bit 6 in Register 0x30) = 1 and TR_SOURCE (Bit 2 in
+Register 0x31) = 1, set this pin to logic high for the PA bias voltage outputs to assume the values set by the
+EXT_PAx_BIAS_ON registers when the TR pin = 1, and EXT_PAx_BIAS_OFF registers when the TR pin = 0
+(where x = 1 to 4). All PA bias voltage outputs assume the corresponding EXT_PAx_BIAS_OFF register values
+if the PA_ON pin is at logic low (see Table 16). This pin is internally pulled up to the 1.8 V low dropout (LDO)
+regulator bias voltage with a 100 kΩ resistor.
+B4
+TR_POL
+Gate Control Output for External Polarization Switch (0 V or −5 V).
+B5
+TR_SW_POS
+Gate Control Positive Output for External Transmit and Receive Switch (0 V or 3.3 V). Pin is floating upon power
+up or after a soft reset.
+B11
+AVDD1
+−5 V Power Supply. AVDD1 provides the negative currents for sinking the PA_BIASx and LNA_BIAS outputs.
+If the PA_BIASx and LNA_BIAS pins are not used, the user can connect AVDD1 to ground to reduce power
+consumption and to use a single voltage supply. It is recommended to power up the AVDD3 pins (3.3 V) before
+or at the same time as the AVDD1 pin (−5 V).
+C1
+TX3
+Channel 3 Output in Transmit Mode. This pin is ac-coupled via an on-chip balun and series capacitor.
+C13
+RX2
+Channel 2 Input in Receive Mode. This pin is ac-coupled via an on-chip balun.
+E1
+RX3
+Channel 3 Input in Receive Mode. This pin is ac-coupled via an on-chip balun.
+E13
+TX2
+Channel 2 Output in Transmit Mode. This pin is ac-coupled via an on-chip balun and a series capacitor.
+G1
+DET4
+Channel 4 Power Detector Input. DET4 is internally ac-coupled and enabled by Register 0x030, Bit 0. The
+nominal operating input power range is −20 dBm to +10 dBm. If this pin is unused, it is recommended to leave
+the detector disabled and either provide a 50 Ω termination or ground the input.
+G13
+DET2
+Channel 2 Power Detector Input. DET2 is internally ac-coupled and enabled by Register 0x030, Bit 2. The
+nominal operating input power range is −20 dBm to +10 dBm. If this pin is unused, it is recommended to leave
+the detector disabled and either provide a 50 Ω termination or ground the input.
+J1
+TX4
+Channel 4 Output in Transmit Mode. This pin is ac-coupled via an on-chip balun and a series capacitor.
+J13
+RX1
+Channel 1 Input in Receive Mode. This pin is ac-coupled via an on-chip balun.
+L1
+RX4
+Channel 4 Input in Receive Mode. This pin is ac-coupled via an on-chip balun.
+L13
+TX1
+Channel 1 Output in Transmit Mode. This pin is ac-coupled via an on-chip balun and a series capacitor.
+M3
+CSB
+SPI Chip Select Input (1.8 V CMOS Logic). Serial communication is enabled when CSB goes low. When CSB
+goes high, serial data is loaded into the register corresponding to the address in the instruction cycle (see Figure
+2) in write mode.
+M4
+SDO
+SPI Serial Data Output (1.8 V CMOS Logic). Enabled when SDO ACTIVE Bit = 1. Used in 4-wire SPI protocol.
+Pin has a readback error when sharing a bus with other chips. See SDO Readback Problem and Solution.
+M5
+SDIO
+SPI Serial Data Input and Output (1.8 V CMOS Logic). 4-wire SPI protocol if SDO ACTIVE Bit = 1; 3-wire SPI
+protocol when SDO ACTIVE Bit = 0.
+M6
+SCLK
+SPI Serial Clock Input (1.8 V CMOS Logic). In write mode, data is sampled on the rising edge of SCLK. During a
+read cycle, output data changes at the falling edge of SCLK.
+
+
+--- Page 14/79 ---
+Data Sheet
+ADAR1000
+PIN CONFIGURATION AND FUNCTION DESCRIPTIONS
+analog.com
+Rev. B | 14 of 79
+Table 5. Pin Function Descriptions
+Pin No.
+Mnemonic
+Description
+M8
+CREG1
+Decoupling Pin for 1.8 V LDO Reference. Connect a 1 µF capacitor through a low impedance path from this pin
+to a ground plane.
+M9
+CREG2
+Decoupling Pin for 2.8 V LDO Output. Connect a 1 µF capacitor through a low impedance path from this pin to a
+ground plane.
+M10, M11, N11
+AVDD3
+3.3 V Voltage Power Supply Inputs. It is recommended to power-up these pins before or at the same time as the
+AVDD1 (−5 V) supply.
+N2
+RX_LOAD
+Load Receive Registers Input (1.8 V CMOS Logic). A rising edge causes contents in the receive channel
+holding registers to transfer to the working registers. There is no internal pull-down resistor on this pin; pull down
+to ground if not using pin. Logically OR'ed internally with LDRX_OVERRIDE signal.
+N3
+TX_LOAD
+Load Transmit Registers Input (1.8 V CMOS Logic). A rising edge causes contents in the transmit channel
+holding registers to transfer to the working registers. There is no internal pull-down resistor on this pin; pull down
+to ground if not using pin. Logically OR'ed internally with LDTX_OVERRIDE signal.
+N4
+ADDR0
+Address Pin for 2-Bit Chip Address Code. (1.8 V CMOS Logic). Corresponds to Bit 13 in the SPI address
+header. ADDR1 and ADDR0 together select one of four ADAR1000 chips to accept the serial instructions and
+data.
+N5
+ADDR1
+Address Pin for 2-Bit Chip Address Code (1.8 V CMOS Logic). Corresponds to Bit 14 in the SPI address header.
+ADDR1 and ADDR0 together select one of four core chips to accept the serial instructions and data.
+N6
+TR
+Transmit and Receive Mode Select Input (1.8 V CMOS Logic). TR = Low is receive mode and TR = High is
+transmit mode.
+N9
+CREG4
+Decoupling Pin for 1.8 V LDO Output. Connect a 1 µF capacitor through a low impedance path from this pin to a
+ground plane.
+N10
+CREG3
+Decoupling Pin for 2.8 V LDO Reference. Connect a 1 µF capacitor through a low impedance path from this pin
+to a ground plane.
+N13
+DET1
+Channel 1 Power Detector Input. DET1 is internally ac-coupled and enabled by Register 0x030, Bit 3. The
+nominal operating input power range is −20 dBm to +10 dBm. If this pin is unused, it is recommended to leave
+the detector disabled and either provide a 50 Ω termination or ground the input.
+EPAD
+Exposed Pad. Connect the exposed pad and all GND connections to a low impedance ground plane on the
+PCB.
+
+
+--- Page 15/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 15 of 79
+AVDD1 = −5 V, ADVDD3 = +3.3 V, TA = 25°C, nominal bias settings, reported gain, IP3, P1dB and NF were single channel measurements, with
+unmeasured channels biased up for gain, IP3 and P1dB, while NF measured with the other three channels disabled, unless otherwise stated.
+Figure 10. Gain vs. Frequency for Gain Settings from 0 to 127, Single Receive
+Channel
+Figure 11. Normalized Gain vs. Frequency over AVDD3 Supply and
+Temperature, Receive Channel
+Figure 12. Gain vs. Frequency over Bias and Temperature, Receive Channel
+Figure 13. Normalized Gain vs. 7-Bit Gain Control Code, Single Receive
+Channel
+Figure 14. Gain vs. Phase Setting over Frequency, Receive Channel
+Figure 15. Gain and Return Loss vs. Frequency, at Maximum Gain, Receive
+Channel
+
+
+--- Page 16/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 16 of 79
+Figure 16. Phase Shift vs. Phase Setting over Temperature, Receive Channel
+Figure 17. Phase Error vs. Frequency, Receive Channel
+Figure 18. Phase Shift vs. Frequency for Step Attenuator in Attenuation
+Mode, Normalized to Bypass Mode, Receive Channel
+Figure 19. Normalized Phase Shift vs. Normalized Gain over Frequency,
+Receive Channel
+Figure 20. Phase Error vs. Phase Setting over Frequency, Receive Channel
+Figure 21. Channel to Channel Phase Difference vs. Frequency, Receive
+Channel (Referenced to an Average of All Four Channels, Not an Ideal Phase
+Reference)
+
+
+--- Page 17/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 17 of 79
+Figure 22. Channel to Channel Gain Difference vs. Frequency, Receive
+Channel
+Figure 23. Input P1dB vs. Frequency over Bias and Temperature, Receive
+Channel
+Figure 24. Input P1dB vs. Frequency over Gain, Receive Channel
+Figure 25. Input IP3 vs. Frequency over Bias and Temperature, Receive
+Channel
+Figure 26. Noise Figure vs. Frequency over Gain, Receive Channel
+Figure 27. Noise Figure vs. Frequency over Bias and Temperature, Receive
+Channel
+
+
+--- Page 18/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 18 of 79
+Figure 28. Input IP3 vs. Frequency over Gain, Receive Channel
+Figure 29. Gain vs. Frequency over Gain Settings from 0 to 127, Single
+Transmit Channel
+Figure 30. Normalized Gain vs. Frequency over AVDD3 Supply and
+Temperature, Transmit Channel
+Figure 31. Gain vs. Frequency over Bias and Temperature, Single Transmit
+Channel
+Figure 32. Normalized Gain vs. 7-Bit Gain Control Code, Transmit Channel
+Figure 33. Gain vs. Phase Setting over Frequency, Single Transmit Channel
+
+
+--- Page 19/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 19 of 79
+Figure 34. Gain and Return Loss vs. Frequency, Transmit Channel
+Figure 35. Phase Shift vs. Phase Setting over Temperature, Transmit Channel
+Figure 36. Phase Error vs. Frequency, Transmit Channel
+Figure 37. Phase Shift vs. Frequency for Step Attenuator in Attenuation
+Mode, Normalized to Bypass Mode, Transmit Channel
+Figure 38. Normalized Phase Shift vs. Normalized Gain over Frequency,
+Transmit Channel
+Figure 39. Phase Error vs. Phase Setting over Frequency, Transmit Channel
+
+
+--- Page 20/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 20 of 79
+Figure 40. Channel to Channel Phase Difference vs. Frequency, Transmit
+Channel (Referenced to an Average of All Four Channels, Not an Ideal Phase
+Reference)
+Figure 41. Channel to Channel Gain Difference vs. Frequency, Transmit
+Channel
+Figure 42. Output P1dB vs. Frequency over Bias and Temperature, Transmit
+Channel
+Figure 43. Output P1dB vs. Frequency over Gain, Transmit Channel
+Figure 44. Output IP3 vs. Frequency over Bias and Temperature, Transmit
+Channel
+Figure 45. Noise Figure vs. Frequency over Gain, Transmit Channel
+
+
+--- Page 21/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 21 of 79
+Figure 46. Noise Figure vs. Frequency over Bias and Temperature, Transmit
+Channel
+Figure 47. PSAT vs. Frequency, Transmit Channel, Nominal Bias, Maximum
+Gain and Phase Set to 45°, All Channels Enabled
+Figure 48. Gain Variation vs. Phase over Gain, 9.5 GHz, Receive Channel
+Figure 49. Output IP3 vs. Frequency over Gain, Transmit Channel
+Figure 50. PSAT vs. Frequency, Transmit Channel, Low Bias, Maximum Gain
+and Phase Set to 45°, All Channels Enabled
+Figure 51. Phase Variation vs. Gain over Phase, 9.5 GHz, Receive Channel;
+Note the Phase Discontinuity When the Switched Attenuator is Used
+
+
+--- Page 22/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 22 of 79
+0xFF
+0xAB
+0x8B
+0x7F
+0x2B
+0x0B
+-10
+0
+10
+–40
+–30
+–20
+044
+Figure 52. Gain Variation vs. Phase over Gain, 11.5 GHz, Receive Channel
+Figure 53. Gain Variation vs. Phase over Gain, 14 GHz, Receive Channel
+0xFF
+0xB3
+0x94
+0x7F
+0x33
+0x14
+–40
+–30
+–20
+–10
+0
+10
+20
+049
+Figure 54. Gain Variation vs. Phase over Gain, 9.5 GHz, Transmit Channel
+Figure 55. Phase Variation vs. Gain over Phase, 11.5 GHz, Receive Channel
+Figure 56. Phase Variation vs. Gain over Phase, 14 GHz, Receive Channel
+Figure 57. Phase Variation vs. Gain over Phase, 9.5 GHz, Transmit Channel
+
+
+--- Page 23/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 23 of 79
+Figure 58. Gain Variation vs. Phase over Gain, 11.5 GHz, Transmit Channel
+0xFF
+0xB3
+0x94
+0x7F
+0x33
+0x14
+–40
+–30
+–20
+–10
+0
+10
+20
+051
+Figure 59. Gain Variation vs. Phase over Gain, 14 GHz, Transmit Channel
+Figure 60. AVDD3 and AVDD1 Supply Current vs. Temperature, Four Transmit
+Channels Enabled, Normal Bias Mode and Low Bias Mode
+Figure 61. Phase Variation vs. Gain over Phase, 11.5 GHz, Transmit Channel
+Figure 62. Phase Variation vs. Gain over Phase, 14 GHz, Transmit Channel
+Figure 63. AVDD3 and AVDD1 Supply Current vs. Temperature, Four Receive
+Channels Enabled, Normal Bias Mode and Low Bias Mode
+
+
+--- Page 24/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 24 of 79
+Figure 64. Receive to Transmit Switching Response to TR Rising Edge
+Figure 65. Transmit to Receive Switching Response to TR Falling Edge
+Figure 66. TR_SW_POS and TR_SW_NEG Response to TR Rising Edge
+Figure 67. TR_SW_POS and TR_SW_NEG Response to TR Falling Edge
+Figure 68. Gain Settling Response to TX_LOAD
+Figure 69. Phase Settling Response (as TX1 Vector Modulator Inphase-
+Channel Output) to TX_LOAD
+
+
+--- Page 25/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 25 of 79
+Figure 70. Beam Position Memory Advance vs. TX_LOAD
+Figure 71. Beam Position Memory Advance vs. RX_LOAD with Transmit and
+Receive Switching
+Figure 72. Isolation vs. Frequency, Transmit to Receive Channel
+Figure 73. Isolation vs. Frequency, Transmit to Detector and Detector to
+Transmit
+Figure 74. Isolation vs. Frequency, Receive Channel to Receive Channel
+Figure 75. Isolation vs. Frequency, Receive Channel to Receive Channel
+
+
+--- Page 26/79 ---
+Data Sheet
+ADAR1000
+TYPICAL PERFORMANCE CHARACTERISTICS
+analog.com
+Rev. B | 26 of 79
+Figure 76. Isolation vs. Frequency, Transmit Channel to Transmit Channel
+Figure 77. Isolation vs. Frequency, Transmit Channel to Transmit Channel
+Figure 78. Input Isolation vs. Frequency, Receive to Detector and Detector to
+Receive
+Figure 79. RF Detector Output Code vs. Input Power and Temperature, 11.5
+GHz
+Figure 80. Input Return Loss vs. Frequency, RF Detector
+Figure 81. ADC Output Code vs. Ambient Temperature, Temperature Sensor
+
+
+--- Page 27/79 ---
+Data Sheet
+ADAR1000
+EQUIVALENT CIRCUITS
+analog.com
+Rev. B | 27 of 79
+Figure 82. Transmit Output Equivalent Circuit
+Figure 83. Receive Input Equivalent Circuit
+Figure 84. Common RF_IO Interface Schematic
+Figure 85. Simplified Power Detector Schematic
+Figure 86. Simplified PA/LNA Bias DAC Schematic
+Figure 87. TR_SW_NEG and TR_POL Switch Driver
+Figure 88. TR_SW_POS Switch Driver
+
+
+--- Page 28/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 28 of 79
+RF PATH
+The ADAR1000 contains four identical transmit and receive chan-
+nels for time division duplex (TDD) operation. As shown in Figure
+89, each receive channel includes an LNA followed by a vector
+modulator based phase shifter and a VGA. Each transmit channel
+includes a VGA followed by a vector modulator based phase shifter
+and a driver amplifier. These six blocks, per receive and transmit
+channel, constitute the RF subcircuits. A control switch selects
+between the transmit and receive paths. A step attenuator stage
+of 0 dB or 15 dB is located in the common path and shared
+between the transmit and receive modes before connecting to the
+passive 4:1 combining network (while in receive mode) or splitting
+network (while in transmit mode). The primary function of the chip
+is to accurately set the relative phase and gain of each channel
+so that the signals coherently add in the desired spatial direction.
+The individual path gain control can compensate for temperature
+and process effects and provides tapering for the beam to achieve
+low-side lobe levels.
+Figure 89. Transmit and Receive Channel Functional Diagram
+As shown in Figure 82 and Figure 83, the transmit output and
+receive input of each channel is connected to a balun, which
+converts the single-ended signal to the differential signal required
+for the active RF circuit blocks. The balun networks also match the
+input and outputs to 50 Ω over the operating bandwidth. Figure 84
+shows the interface schematic for the common RF_IO port, which is
+single-ended, matched to 50 Ω over the operating bandwidth, and
+connected to dc ground through a shunt matching inductor.
+DIGITAL INTERFACE
+The digital interface is composed of several pins. A high level
+block diagram is shown in Figure 90. The pins that are most
+often used are the SPI pins: CSB, SCLK, SDIO, and SDO. These
+pins are used when setting and reading the values in the control
+registers and the data in memory. The TR pin controls the device
+state: transmit or receive operation. The TX_LOAD pin and the
+RX_LOAD pin update the gain and phase while operating in RAM
+bypass mode (data is sourced from registers), or advance the beam
+position while sourcing data from the RAM (along with six or more
+clock cycles). The ADDR0 pin and the ADDR1 pin provide the user
+with a method to address an individual ADAR1000 chip on an SPI
+bus shared by up to four chips. The following sections discuss
+information related to these pins.
+Figure 90. Digital Interface Block Diagram
+
+
+--- Page 29/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 29 of 79
+PHASE AND GAIN CONTROL
+Phase control is implemented using the active vector modulator
+architecture shown in Figure 91. The incoming signal is split into
+equal amplitude, inphase and quadrature (I and Q) signals that
+are amplified independently by two identical VGAs and summed
+at the output to generate the required phase shift. Note that the
+I VGA and Q VGA are different than the VGA shown in Figure
+89. Six bits control each VGA inside the vector modulator, five bits
+for amplitude control and one bit for polarity control, for a total
+of 12 bits per phase shifter. The vector modulator output voltage
+amplitude (VOUT) and phase shift (Φ) are given by the following
+equations:
+VOUT =
+VI2 + VQ2
+(1)
+     Φ = arctan(VQ/VI)
+where:
+VI is output voltage of the I channel VGA.
+VQ is the output voltage of the Q channel VGA.
+Figure 91. Active Vector Modulator Phase Shifter Block Diagram
+Note that when evaluating the arctangent function, the proper
+phase quadrant must be selected. The signs of VQ and VI deter-
+mine the phase quadrant according to the following:
+►If VQ and VI are both positive, the phase shift is between 0° and
+90°.
+►If VQ is positive and VI is negative, the phase shift is between 90°
+and 180°.
+►If VQ and VI are both negative, the phase shift is between 180°
+and 270°.
+►If VQ is negative and VI is positive, the phase shift is between
+270° and 360°.
+Figure 92. Vector Gain Representation
+In general, select the VQ and VI values to give the desired phase
+shift while minimizing the variation in VOUT, which minimizes the
+variation in gain. However, allowing some amplitude variation can
+result in finer phase step resolution and/or lower phase errors.
+Table 10, Table 11, Table 12, and Table 13 in the Phase Control
+Registers section details the values to set in Register 0x014 to
+Register 0x01B for the receive channels and Register 0x020 to
+Register 0x027 for the transmit channels, to sweep the phase while
+keeping the gain of the vector modulator constant. Keeping the
+vector modulator gain constant degrades the phase resolution to
+2.8°. Table 10 to Table 13 can be used when writing the phase data
+into RAM. The ADAR1000 RAM memory map can be found on the
+ADAR1000 product page.
+If the values given in Table 10, Table 11, Table 12, and Table 13 are
+used, the VGA exclusively executes the gain control in either the
+transmitter or receiver path. Register 0x010 to Register 0x013 and
+Register 0x01C to Register 0x01F control the receive and transmit
+VGAs, respectively. If using values not found in Table 10, Table 11,
+Table 12, and Table 13, be aware that both the vector modulator
+and the VGA affect the total gain.
+The total gain (in dB) (GAINTOTAL) is calculated by the following
+equation:
+GAINTOTAL (dB) = GAINVM (dB) + GAINVGA (dB) + GAINAMP (dB) +
+GAINATT (dB)
+where:
+GAINVM is the vector modulator gain.
+GAINVGA is the VGA gain from any of the transmit and receiver
+paths.
+GAINAMP is either the (on-chip) LNA of the receive paths or the
+driver amplifier of the transmit paths.
+GAINATT is the gain of the switched attenuator in the common-path,
+either 0 dB or -15 dB.
+RECEIVE OUTPUT NOISE AND NOISE FIGURE
+Noise figure for the receive signal chain is measured with only a
+single path enabled. Enabling all four receive paths increases the
+output noise by approximately 6 dB. However, the coherent gain
+increases by 12 dB relative to a single path. Therefore, the signal-
+to-noise ratio increases by 6 dB (relative to the signal-to-noise ratio
+of the single receive path, with only one path enabled).
+TRANSMIT AND RECEIVE CONTROL
+Properly transitioning from transmit mode to receive mode, and vice
+versa, is key to operating a TDD or radar phased array system.
+The ADAR1000 performs the transmitter to receiver and receiver
+to transmitter functionality based on a transmit or receive control
+signal input to the chip. Mode transition can be accomplished
+through either a SPI register write or via the state of the TR pin.
+When using the SPI, Register 0x31 controls all that is required to
+change the transmit and receive state:
+
+
+--- Page 30/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 30 of 79
+►Bit 1: TR_SPI. When in SPI control, determines receive (low) or
+transmit (high) mode.
+►Bit 2: TR_SOURCE. Determines whether the SPI (low) or the TR
+pin (high) is used for transmit and receive control.
+►Bit 5: RX_EN. Must also be asserted high to turn on the receive
+subcircuits. The LNA_BIAS pin voltage follows this bit. Used in
+SPI control.
+►Bit 6: TX_EN. Must also be asserted high to turn on the transmit
+subcircuits. The PA_BIASx pins follows this bit. Used in SPI
+control.
+Note that the BIAS_CTRL bit (Bit 6, Register 0x030) must be high
+for RX_EN and TX_EN to control the bias pins. Register 0x031 also
+controls the external switch drivers (see the External Switch Control
+section).
+When the TR_SOURCE bit (Bit 2, Register 0x031) is high, the
+TR pin controls all operation necessary to switch from receive to
+transmit and vice versa. This operation includes setting the on-chip
+and off-chip transmit and receive switches, enabling/disabling the
+receive or transmit subcircuits, as well as turning on and off the
+gate bias for the external PAs and LNAs if the BIAS_CTRL bit (Bit
+6, Register 0x030) is high.
+RF SUBCIRCUIT BIAS CONTROL
+Use Register 0x034 through Register 0x037 to adjust the bias
+current setting of each of the active RF subcircuits to trade RF
+performance for lower dc power.
+Table 6 provides the recommended settings for the nominal and
+low operating power modes. The nominal power mode provides
+optimized RF performance relative to power consumption. When
+reducing dc power for power sensitive applications, this power
+reduction is at the expense of lower gain, higher noise figure, and
+lower linearity.
+RF SUBCIRCUIT ENABLES AND DISABLES
+When using the SPI for transmit and receive control, RF subcircuits
+and/or channels can be individually enabled via Register 0x02E
+(receive channel enables) and Register 0x02F (transmit channel
+enables). The TX_EN and RX_EN bits (Bits[6:5], Register 0x031)
+must also be at logic high to enable the transmit or receive subcir-
+cuits, respectively. The transmit and receive subcircuits cannot be
+turned on simultaneously, and if both TX_EN and RX_EN are high,
+both the transmit and receive subcircuits power down.
+If using the TR pin for transmit and receive control, the functions of
+the TX_EN and RX_EN automatically follow the state of the TR pin
+input, allowing fast switching between transmit and receive modes.
+The fast switching is achieved with the TR pin ultimately control-
+ling enable override signals that are internal to the ADAR1000
+(RX_EN_OVERRIDE and TX_EN_OVERRIDE). These signals turn
+all the receive subcircuits off and transmit subcircuits on while
+in transmit mode, and all the transmit subcircuits off and all the
+receive subcircuits on while in receive mode.
+The overall receive and transmit subcircuit enable/disable logic is
+shown in Figure 93 for the receive subcircuits and Figure 94 for the
+transmit subcircuits.
+Table 6. SPI Settings for Nominal and Low Power Modes
+Subcircuit
+Register
+Bit Field
+Power Mode
+Nominal Setting
+Low Setting
+Receive LNA
+0x034
+LNA_BIAS
+8
+5
+Receive Vector Modulator
+0x035
+RX_VM_BIAS
+5
+2
+Receive VGA
+0x035
+RX_VGA_BIAS
+10
+3
+Transmit Vector Modulator
+0x036
+TX_VM_BIAS
+5
+2
+Transmit VGA
+0x036
+TX_VGA_BIAS
+5
+5
+Transmit Driver
+0x037
+TX_DRV_BIAS
+6
+3
+Figure 93. Receive Subcircuit Enabling Logic
+
+
+--- Page 31/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 31 of 79
+Figure 94. Transmit Subcircuit Enabling Logic
+POWER DETECTORS
+Four power detectors are provided to sample peak power coupled
+from the outputs of off-chip power amplifiers for power monitoring.
+The on-chip ADC selects from the four detectors and converts
+the analog voltage output of the detector to an 8-bit digital word
+that is read from Register 0x33. Figure 85 shows a simplified
+power detector schematic. Each detector input is ac-coupled to a
+diode-based detector, and then amplified and routed to the ADC.
+A reference diode (not shown in Figure 85) provides temperature
+compensation to minimize variation in the output voltage vs. the
+input power response over the operating temperature range.
+The detector inputs are matched on chip to 50 Ω. Register 0x030
+contains an enable bit (CHx_DET_EN) for each detector so that
+the detectors can be powered down when not in use. For unused
+detectors, a 50 Ω termination or analog ground connection is
+recommended on the detector RF inputs, but they can also be left
+floating.
+EXTERNAL AMPLIFIER BIAS DRIVERS
+Five bias driver outputs are provided for biasing off chip gallium
+arsenide (GaAs) or gallium nitride (GaN) amplifiers:
+►PA_BIAS1, PA_BIAS2, PA_BIAS3, and PA_BIAS4
+►LNA_BIAS
+Each driver is controlled with an 8-bit DAC. One driver is intended
+for each off chip PA (four in total), and the fifth driver is shared
+between multiple off chip LNAs (usually four in total). Figure 86
+shows a simplified schematic for the bias driver and DAC. An 8-bit
+word from the SPI sets the DAC output, which is amplified and
+translated to a 0 V to −4.8 V range intended for the gate bias of
+the GaAs or GaN PAs. A push pull output stage allows sourcing
+or sinking of up to 10 mA for PAs that can draw significant gate
+current when pushed deep into compression. The LNA bias DAC
+also includes a disable mode with a high output impedance, which
+provides flexibility for self biased LNAs that also have an external
+gate voltage adjustment capability. The LNA_BIAS_ OUT_EN bit
+(Bit 4, Register 0x030) provides this control.
+Two SPI registers are associated with each bias driver output, an
+on bias register (Register 0x029 through Register 0x02D) for setting
+the bias voltage for when the amplifier is active, and an off bias
+register (Register 0x046 through Register 0x04A) for setting the ap-
+propriate bias voltage for turning the amplifier off. The BIAS_CTRL
+bit (Bit 6, Register 0x030) determines whether the driver bias
+outputs must be changed by loading the new settings over the SPI
+each time, and whether the outputs switch between the on and
+off registers with the TX_EN or RX_EN signal (SPI transmit and
+receive mode) or with the state of the TR pin. A 0x00 value in the
+on or off bias registers, correspond to a 0 V output. A 0xFF in the
+on or off bias registers correspond to a −4.8 V output.
+EXTERNAL SWITCH CONTROL
+The chip provides three driver outputs for external GaAs switch
+control as follows:
+►TR_SW_NEG for an external negative voltage control transmit
+or receive switch. Outputs between 0 V and AVDD1 (nominally
+−5 V). A push pull output stage allows sourcing or sinking of up
+to 1 mA (See Figure 87).
+►TR_SW_POS for a positive voltage control transmit/receive
+switch. Outputs between 0 V and AVDD3 (nominally 3.3 V) (See
+Figure 88).
+►TR_POL for a negative voltage control polarization switch. Out-
+puts between 0 V and AVDD1 (nominally −5 V). A push pull
+output stage allows sourcing or sinking of up to 1 mA (Figure
+87).
+The external transmit or receive switch driver outputs change state
+along with the on-chip transmit or receive switches via the transmit
+or receive control signal (either through the SPI or the TR pin).
+Register 0x031 (SW_CTRL) contains all the control bits required for
+both switch drivers. The polarity of the transmit and receive switch
+driver output with respect to the transmit and receive control signal
+is set via the SW_DRV_ TR_STATE bit (Bit 7, Register 0x031)
+to provide flexibility for different GaAs switches. See Table 14
+complete control information for TR_SW_POS and TR_SW_NEG.
+The external polarization switch changes with the state of the POL
+bit (Bit 0, Register 0x031). With POL = 0, TR_POL outputs 0V,
+whereas POL = 1 outputs −5 V. Assert the SW_DRV_EN_TR and
+SW_DRV_EN_POL bits high (Bits[4:3], Register 0x031) to enable
+the switch drivers.
+
+
+--- Page 32/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 32 of 79
+ADC OPERATION
+The chip contains an 8-bit ADC for sampling the outputs of the four
+power detectors and the temperature sensor. Register 0x032 con-
+trols the ADC. The 8-bit output is read (only) from Register 0x033
+(ADC_OUTPUT). The control bits in Register 0x32 are as follows:
+►The ADC_EOC (Bit 0) read bit indicates when a conversion is
+complete and the 8-bit output is available for reading over the
+SPI. This is low during a conversion cycle and a high indicates a
+conversion is complete.
+►A multiplexer (mux) selects between the five inputs based on
+MUX_SEL (Bits[3:1]). See Table 7.
+►The ST_CONV bit (Bit 4) initiates a conversion, which requires
+16 clock cycles for a minimum conversion time of 8 µs (2 MHz
+clock). This bit is active high and is self clearing.
+►The CLK_EN (Bit 5) turns on ADC clock oscillator; active high.
+►The ADC_EN (Bit 6) turns on and resets ADC; active high
+►The ADC_CLKFREQ_SEL (Bit 7) selects between a 2 MHz and
+a 250 kHz clock frequency (low and high, respectively).
+The following details the ADC conversion cycle sequence:
+1. The ST_CONV bit is asserted high via SPI write to Register
+0x32.
+2. The ADC input is sampled during four ADC clock cycles.
+3. The ADC input is held and the conversion happens over the
+next 12 ADC clock cycles.
+4. The ADC_EOC bit asserts high and data in Register 0x33
+becomes valid after 16 total ADC clock cycles.
+Table 7. Mux Selection Decoding
+MUX_SEL (Bits[3:1])
+Selection
+0b000
+Temperature sensor
+0b001
+Detector 1
+0b010
+Detector 2
+0b011
+Detector 3
+0b100
+Detector 4
+CHIP ADDRESSING
+Use the ADDR1 and ADDR0 pins to set the address of each
+individual chip. The user can connect the SCLK, CSB, SDIO, and
+SDO lines of up to four chips together and individually write to and
+read from each chip. The ADDR1 and ADDR0 values correspond
+to the AD1 and AD0 bits (Bits[14:13] of the SPI address header)
+shown in Figure 2.
+An example write to Chip 2 has the following address bit settings.
+For a group of four chips, indexed 0 to 3, ADDR1 is set to high and
+ADDR0 is set to low with the address header Bits[14:13] = 10.
+The user also has the option to write to all four chips with a single
+write by setting the address header Bits[14:11] = 0001. Note that
+this type of broadcast SPI write is only applicable to the register
+space of the chips on the SPI bus. It is not applicable to the RAM
+space on the chip. The user must write to the RAM of each chip on
+the SPI individually.
+MEMORY ACCESS
+On-chip RAM is provided for storing phase and amplitude settings
+for up to 121 beam positions and seven bias settings for both
+transmit and receive modes, as shown in the ADAR1000 Memory
+Map document, found on the product webpage. A beam position
+consists of the gain, Vector Modulator I, and Vector Modulator Q
+settings for all four channels. The ADAR1000 memory map shows
+where in the RAM the receive beam position data, transmit beam
+position data, receive bias setting data, and transmit bias setting
+data are located.
+The BEAM_RAM_BYPASS bit in Register 0x038 determines where
+the amplitude and phase settings are sourced from.
+►If BEAM_RAM_BYPASS = 0, data sourced from memory.
+►If BEAM_RAM_BYPASS = 1, data sourced from registers.
+Receive beam positions start at Address 0x1000 and transmit beam
+position start at 0x1800. Receive bias settings start at Address
+0x1790 and transmit bias settings start at 0x1F90.
+On soft reset of the ADAR1000, the data stored in the RAM is
+not affected. However, on a power cycle, the data in the RAM is
+undefined. The user must rewrite to the RAM after each power
+cycle for valid data.
+All four amplitude and phase settings of the receive and transmit
+channels can be loaded from the same beam position index, or the
+amplitude and phase settings can be pulled from different beam
+position indices for each receive or transmit channel, allowing even
+greater flexibility. This is described in Single Memory Fetch section.
+Sourcing bias data from memory is described in the Bias Setting
+Memory Fetch section.
+The on-chip RAM also has a memory sequencer that can be
+enabled, which allows the user to sequence through any desired
+set of beam positions (see the Sequencing Through Memory Beam
+Positions section).
+An example of writing gain, phase, and bias values to the memory
+is provided in Table 31 in the SPI Programming Example section.
+Single Memory Fetch
+After the beam position data is written to the RAM (see the
+ADAR1000 Memory Map), perform the following steps to fetch a
+beam position from memory:
+1. Set BEAM_RAM_BYPASS low in Register 0x038.
+2. Perform Step a or Step b, but not both:
+a. For loading all four transmit/receive channels with the same
+beam position index, write the desired 7-bit beam position
+(0 through 120) to Register 0x039 (for receive) or Register
+
+
+--- Page 33/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 33 of 79
+0x03A (for transmit) and assert the fetch bit high (Bit 7) in
+each register.
+b. For loading different beam positions indices to individual
+channels, assert TX_CHX_RAM_BYPASS in Register 0x38
+for transmit channels and/or RX_ CHX_RAM_BYPASS for
+receive channels. Then, write the desired 7-bit beam posi-
+tion to Register 0x3D through Register 0x40 for the receive
+channels and Register 0x41 through Register 0x44 for the
+transmit channels, and assert the fetch bit high in each
+register.
+3. Provide at least six additional clock cycles on SCLK to load the
+new data from the RAM. For data load, SCLK is independent
+of CSB state. Data is loaded when CSB is high and SCLK is
+applied or when CSB is low during a SPI write/read.
+4. Pulse the TX_LOAD/RX_LOAD pin or the LDTX_OVER-
+RIDE/LDRX_OVERRIDE bit for the new data to take effect.
+Keep the transmit and receive load commands separate be-
+cause loading problems can occur when the TX_LOAD and
+RX_LOAD pins are pulsed high together or the LDTX_OVER-
+RIDE/LDRX_OVERRIDE bits are asserted high in the same SPI
+write. Keep the pin pulsing separated by at least eight SCLK
+cycles for the former, and asserting the bits in separate SPI
+writes for the latter.
+Bias Setting Memory Fetch
+Seven memory locations are provided for storing bias settings
+for all the transmit subcircuits (also stored in Register 0x036 and
+Register 0x037) and the external PA bias on and off values for the
+PA_BIASx pins (also stored in Register 0x29 through Register 0x2C
+and Register 0x46 through Register 0x49). Similarly, seven memory
+locations are provided for storing bias settings for the receive chan-
+nel subcircuits (also stored in Register 0x34 and Register 0x35)
+and the external LNA bias on and off values for the LNA_BIAS
+pin (also stored in Register 0x2D and Register 0x4A) When the
+BIAS_RAM_BYPASS bit (Register 0x38, Bit 5) is at logic low, all
+subcircuit and external bias settings are sourced from memory
+(instead of the registers).
+After the bias setting is written to the RAM (see the ADAR1000
+Memory Map), perform the following steps to fetch a bias setting
+from memory:
+1. Set BIAS_RAM_BYPASS low in Register 0x038.
+2. Write the desired 3-bit bias setting (Value 0 through Value 6
+maps to bias Setting 1 through Setting 7) to Register 0x051 (for
+receive) or Register 0x052 (for transmit), and assert the fetch
+bit high (Bit 3) in each register.
+3. Provide at least six additional clock cycles on SCLK to load the
+new data from the RAM. For data load, SCLK is independent of
+the CSB state: data is loaded when CSB is high and SCLK is
+applied or when CSB is low during a SPI write/read.
+Sequencing Through Memory Beam Positions
+The beam positions can be stepped sequentially through the posi-
+tions stored in memory. Sequencing through the beam positions
+eliminates the need for a SPI register write to load the next beam
+position, resulting in faster beam transitions. An example of this
+operation is shown in Figure 70. To use this function, perform the
+following steps:
+1. Load Register 0x04D and Register 0x04E with the desired 7-bit
+transmit channel start and stop beam position indices of the
+sequence
+2. Load Register 0x04F and Register 0x050 with the desired 7-bit
+receive channel start and stop beam position indices of the
+sequence.
+3. If sequencing through transmit beam positions, assert only
+TX_BEAM_STEP_EN, and keep RX_BEAM_STEP_EN low in
+Register 0x038. If RX_BEAM_STEP_EN is also asserted high,
+the first transmit beam position of the first sequence does not
+fetch and load correctly. However, on subsequent times through
+the sequence, the first transmit beam position loads correctly
+when RX_BEAM_STEP_EN is asserted high.
+If sequencing through receiver beam positions,
+TX_BEAM_STEP_EN and RX_BEAM_STEP_EN bits can both
+be asserted high. The first receive beam position fetches and
+loads correctly when TX_BEAM_STEP_EN is asserted high.
+4. Provide at least six additional clock cycles on SCLK to load
+the starting beam position from the RAM. For data load, SCLK
+is independent of the CSB state. Data is loaded when CSB is
+high and SCLK is applied or when CSB is low during a SPI
+write/read.
+5. Pulse the TX_LOAD/RX_LOAD pin or the LDTX_OVER-
+RIDE/LDRX_OVERRIDE bit for the starting beam position to
+take effect.
+Keep the transmit and receive load commands separate be-
+cause loading problems can occur when the TX_LOAD and
+RX_LOAD pins are pulsed high together or the LDTX_OVER-
+RIDE/LDRX_OVERRIDE bits are asserted high in the same SPI
+Write. Keep the pin pulsing separated by at least 8 SCLK cycles
+for the former, and asserting the bits in separate SPI writes for
+the latter.
+6. Repeat the last two steps for the next sequential beam position
+to take effect.
+After the stop beam position is loaded, the sequence returns to the
+start beam position and repeats.
+Toggling Between RAM and Registers
+While stepping through the beam positions in the RAM, data can be
+sourced from the SPI registers, and then sourced from RAM again
+with the following procedure:
+
+
+--- Page 34/79 ---
+Data Sheet
+ADAR1000
+THEORY OF OPERATION
+analog.com
+Rev. B | 34 of 79
+1. Assert the BEAM_RAM_BYPASS bit high to source the data
+from the SPI registers.
+2. Perform a transmit or receive load command over the SPI or
+the pins to load the gain and phase data from the registers.
+3. To source the data from the RAM again, deassert the
+BEAM_RAM_BYPASS bit, provide at least six additional clock
+cycles, and perform another transmit or receive load command.
+When toggling from RAM to registers, and back to RAM, the
+memory position increments twice through this process because
+the TX_BEAM_STEP_EN and RX_BEAM_STEP_EN bits are held
+high through the process. The memory sequencer stays enabled.
+In the first increment of the memory sequencer, six or more SCLK
+cycles are provided while asserting the BEAM_RAM_BYPASS bit
+with a SPI write. Then a transmit or receive load command is
+issued to load the register gain and phase data.
+In the second increment of the memory sequencer, six or more
+SCLK cycles are provided while deasserting BEAM_RAM_BYPASS
+bit with a SPI write. Then a transmit or receive load command is
+issued to load the next memory position.
+In other words, if the user is at Beam Position N before asserting
+BEAM_RAM_BYPASS, the beam position changes to N + 2 after
+this RAM to Register to RAM sequence is completed.
+Note that if TX_BEAM_STEP_EN or RX_BEAM_STEP_EN is deas-
+serted and then reasserted, the sequencer is reset, and begins
+again at its programmed start beam position index.
+Memory Counter Attributes
+The receive and transmit memory counters used to sequence
+through the beam positions feature the following attributes:
+►The receiver and transmitter are not independent of each other
+and need to be controlled separately for proper operation.
+►The TX_LOAD and RX_LOAD pins cannot be tied together to
+advance the transmit and receive memory counters together
+because doing so causes the beam positions to load improperly.
+Keep the pulsing of these load pins separated by a minimum of 8
+SCLK cycles for proper beam position loading from memory.
+►The transmit beam position can be advanced while the device is
+in receive mode, and vice versa.
+►Multiple beam position advances can be performed on the trans-
+mit while the device is in receive mode, and vice versa.
+CALIBRATION
+There is no built in calibration or factory calibration for the magni-
+tude and phase of each gain and phase of the RF channel. The rms
+phase error resulting from using the I and Q settings is determined
+from the equations previously provided in the Phase and Gain Con-
+trol section. The rms phase error can be improved by running a full
+over the air active electronically scanned array (AESA) calibration
+of each channel at the desired frequency operation.
+MEMORY ADDRESS DECODING
+The beam positions in RAM have several reserved (unused) and
+nonfunctional addresses. These addresses occur between consec-
+utive beam positions, bias settings, and between receive data and
+transmit data. Reserved addresses were added to easily address
+particular data in memory. Address Bit[12] controls whether access
+to register addresses (low) or RAM addresses (high). Use the
+decoding structure shown in Table 8 for the remaining address
+Bits[11:0] if Bit 12 = 1.
+Table 8. Address Decoding Structure
+Address Bit
+Description
+11
+0 = receive address space
+1 = transmit address space
+[10:4]
+Beam position index; the bias setting index is transmit and
+receive dependent (see the Memory Map section)
+0b0000000 = beam Position 0
+0b1111000 = beam Position 120
+[3:2]
+0b00 = Channel 1
+0b01 = Channel 2
+0b10 = Channel 3
+0b11 = Channel 4
+[1:0]
+Gain and phase data; the bias setting data is transmit and
+receive dependent (see the Memory Map section)
+0b00 = VGA gain
+0b01: Vector Modulator I vector
+0b10: Vector Modulator Q vector
+As an example, to access receive Channel 2, for Beam Position 65,
+the bits are as follows:
+►Address Bit 12 = 1
+►Address Bit 11 = 0
+►Address Bits[10:4] = 0b1000001 (65 or 0x41)
+►Address Bits[3:2] = 0b01
+Address Bits[1:0] are used to access the VGA Gain, I Vector, and Q
+vector data of receive Channel 2 for Beam Position 65.
+MEMORY MAP
+A memory map for the ADAR1000 RAM is provided on the product
+webpage. Note that the addresses in the memory map assume
+Chip 0 addressing (AD0 = 0, AD1 = 0). Bits[14:13] in the address
+value must change accordingly when addressing Chip 1, Chip 2, or
+Chip 3.
+All memory locations that are reserved are non functional don’t
+cares.
+
+
+--- Page 35/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 35 of 79
+GAIN CONTROL REGISTERS
+The recommended gain control for each channel is provided
+through a combination of independent receive and transmit path
+VGAs. Each VGA provides over 16 dB of gain control range. A
+switched 0 dB or 15 dB step attenuator that is shared between the
+transmit and receive channels extends the total gain control range
+to greater than 31 dB. Gain control using the vector modulator is
+generally not recommended because gain variation vs. phase can
+increase if not using the values listed in Table 10 Table 11, Table
+12, and Table 13. The VGA and attenuator gain of each receive or
+transmit channel is controlled by an 8-bit register. The VGAs require
+seven bits of control to ensure a 0.5 dB minimum step size with less
+than 0.25 dB error over all conditions, and the eighth bit controls the
+state of the switched attenuator.
+The gain control registers for the receive channels are Regis-
+ter 0x010 through Register 0x013, and the gain control registers
+for the transmit channels are Register 0x01C through Register
+0x01F. Bits[6:0] (RX_VGA_CHx and TX_VGA_CHx) of each regis-
+ter control the VGA gain approximately as shown in Figure 95.
+Limit the usage to the top 16 dB of the gain control range for
+optimal gain linearity and repeatability. Bit 7 (CHx_ ATTN_RX and
+CHx_ATTN_TX) of each register controls the attenuator state (logic
+high means that attenuator is bypassed).
+The gain and phase registers are dual-rank registers, which allows
+the chip to actively receive or transmit using one amplitude and
+phase setting while loading the next setting in the background.
+To source and update the amplitude and phase settings from the
+registers, follow these steps:
+1. Assert the BEAM_RAM_BYPASS bit (Bit 6 of Register 0x038)
+high to source the gain and phase data from the registers.
+2. Write data to Register 0x010 through Register 0x01B to set the
+receive channel gains and phases.
+3. Write data to Register 0x01C through Register 0x027 to set the
+transmit channel gains and phases.
+4. Issue a transmit or receive load command.
+The gain and phase settings in Step 2 and Step 3 are initially
+written to holding registers and do not take effect until the transmit
+and/or receive load command is issued. This action transfers the
+new settings from the holding registers to the working registers,
+causing the new settings to take effect in the RF subcircuits.
+There are two ways issue a transmit load command.
+►Assert the LDTX_OVERRIDE bit in Register 0x28 high
+►Send a positive pulse to the TX_LOAD pin
+There are two ways issue a receive load command.
+►Assert the LDRX_OVERRIDE bit in Register 0x28 high
+►Send a positive pulse to the RX_LOAD pin
+Note that the LDTX_OVERRIDE signal is OR’ed with the TX_LOAD
+signal on chip, and the LDRX_OVERRIDE signal is OR’ed with the
+RX_LOAD signal on chip. If not using the TX_LOAD and RX_LOAD
+pins, pull these pins logic low.
+As an alternative to the registers, up to 121 gain and amplitude
+settings for both the receive and the transmit modes can be stored
+in the on-chip memory. To load new settings from the on-chip
+memory, see the Memory Access section.
+Figure 95. Normalized Gain vs. 7-Bit Gain Control Code
+SWITCHED ATTENUATOR CONTROL
+The state of the switched attenuator also depends upon the trans-
+mit and receive control signal because the attenuator is shared
+between the transmit and the receive paths. The CHx_ATTN_RX bit
+(Bit 7) of Register 0x010 through Register 0x013 control the state
+of the step attenuators while in receive mode. The CHx_ATTN_TX
+bit (Bit 7) of Register 0x01C to Register 0x01F control the state of
+the step attenuators while in transmit mode. A pair of 2:1 switches
+on either side of each attenuator, which are controlled together, de-
+termines whether the attenuator for each channel is set according
+to the receive or transmit working registers as shown in Table 9.
+Table 9. Step Attenuator Control
+Channel Transmit and Receive State
+CHx_ATTN_RX1
+CHx_ATTN_TX1
+Channel x Attenuator State1
+Attenuation (dB)
+Receive
+1
+X2
+Bypass
+0
+Receive
+0
+X2
+Attenuation
+15
+Transmit
+X2
+1
+Bypass
+0
+Transmit
+X2
+0
+Attenuation
+15
+1 From SPI, x = 1, 2, 3, or 4.
+
+
+--- Page 36/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 36 of 79
+Table 9. Step Attenuator Control
+Channel Transmit and Receive State
+CHx_ATTN_RX1
+CHx_ATTN_TX1
+Channel x Attenuator State1
+Attenuation (dB)
+2 X means don't care.
+PHASE CONTROL REGISTERS
+Phase is determined by setting the I and Q VGA gains of the vector
+modulators. The phase control registers for the receive channels
+are Register 0x14 through Register 0x1B. The phase control regis-
+ters for the transmit channels are Register 0x020 through Register
+0x027.
+Each register controls the gain of I or Q VGA and the polarity bit
+to determine the quadrant of the resultant vector. See Figure 92
+in the Phase and Gain Control section. Table 10 maps the user
+desired phase to data of phase control registers. I Reg represents
+Register Bits[5:0], which includes the I polarity Bit 5 and the VM
+I Gain Bits[4:0]. Q Reg represents Bits[5:0], which includes the Q
+polarity Bit 5 and the VM Q Gain Bits[4:0].
+Table 10. Quadrant 1 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+0
+3F
+20
+2.8125
+3F
+21
+5.625
+3F
+23
+8.4375
+3F
+24
+11.25
+3F
+26
+14.0625
+3E
+27
+16.875
+3E
+28
+19.6875
+3D
+2A
+22.5
+3D
+2B
+25.3125
+3C
+2D
+28.125
+3C
+2E
+30.9375
+3B
+2F
+33.75
+3A
+30
+36.5625
+39
+31
+39.375
+38
+33
+42.1875
+37
+34
+45
+36
+35
+47.8125
+35
+36
+50.625
+34
+37
+53.4375
+33
+38
+56.25
+32
+38
+59.0625
+30
+39
+61.875
+2F
+3A
+64.6875
+2E
+3A
+67.5
+2C
+3B
+70.3125
+2B
+3C
+73.125
+2A
+3C
+75.9375
+28
+3C
+78.75
+27
+3D
+81.5625
+25
+3D
+Table 10. Quadrant 1 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+84.375
+24
+3D
+87.1875
+22
+3D
+Table 11. Quadrant 2 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+90
+21
+3D
+92.8125
+01
+3D
+95.625
+03
+3D
+98.4375
+04
+3D
+101.25
+06
+3D
+104.0625
+07
+3C
+106.875
+08
+3C
+109.6875
+0A
+3C
+112.5
+0B
+3B
+115.3125
+0D
+3A
+118.125
+0E
+3A
+120.9375
+0F
+39
+123.75
+11
+38
+126.5625
+12
+38
+129.375
+13
+37
+132.1875
+14
+36
+135
+16
+35
+137.8125
+17
+34
+140.625
+18
+33
+143.4375
+19
+31
+146.25
+19
+30
+149.0625
+1A
+2F
+151.875
+1B
+2E
+154.6875
+1C
+2D
+157.5
+1C
+2B
+160.3125
+1D
+2A
+163.125
+1E
+28
+165.9375
+1E
+27
+168.75
+1E
+26
+171.5625
+1F
+24
+174.375
+1F
+23
+177.1875
+1F
+21
+Table 12. Quadrant 3 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+180
+1F
+20
+182.8125
+1F
+01
+185.625
+1F
+03
+
+
+--- Page 37/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 37 of 79
+Table 12. Quadrant 3 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+188.4375
+1F
+04
+191.25
+1F
+06
+194.0625
+1E
+07
+196.875
+1E
+08
+199.6875
+1D
+0A
+202.5
+1D
+0B
+205.3125
+1C
+0D
+208.125
+1C
+0E
+210.9375
+1B
+0F
+213.75
+1A
+10
+216.5625
+19
+11
+219.375
+18
+13
+222.1875
+17
+14
+225
+16
+15
+227.8125
+15
+16
+230.625
+14
+17
+233.4375
+13
+18
+236.25
+12
+18
+239.0625
+10
+19
+241.875
+0F
+1A
+244.6875
+0E
+1A
+247.5
+0C
+1B
+250.3125
+0B
+1C
+253.125
+0A
+1C
+255.9375
+08
+1C
+258.75
+07
+1D
+261.5625
+05
+1D
+264.375
+04
+1D
+267.1875
+02
+1D
+Table 13. Quadrant 4 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+270
+01
+1D
+272.8125
+21
+1D
+275.625
+23
+1D
+278.4375
+24
+1D
+281.25
+26
+1D
+284.0625
+27
+1C
+286.875
+28
+1C
+289.6875
+2A
+1C
+292.5
+2B
+1B
+295.3125
+2D
+1A
+298.125
+2E
+1A
+300.9375
+2F
+19
+303.75
+31
+18
+306.5625
+32
+18
+309.375
+33
+17
+Table 13. Quadrant 4 Phase Control—Mapping of I and Q VM VGA Register
+Settings to Phase Setting
+Phase (Degrees)
+I Reg (Hex)
+Q Reg (Hex)
+312.1875
+34
+16
+315
+36
+15
+317.8125
+37
+14
+320.625
+38
+13
+323.4375
+39
+11
+326.25
+39
+10
+329.0625
+3A
+0F
+331.875
+3B
+0E
+334.6875
+3C
+0D
+337.5
+3C
+0B
+340.3125
+3D
+0A
+343.125
+3E
+08
+345.9375
+3E
+07
+348.75
+3E
+06
+351.5625
+3F
+04
+354.375
+3F
+03
+357.1875
+3F
+01
+TRANSMIT AND RECEIVE SUBCIRCUIT
+CONTROL
+The TR_SOURCE bit (Bit 2, Register 0x031) determines whether
+the TR pin or the SPI registers controls the switching between
+transmit or receive modes for the ADAR1000. If the TR input is se-
+lected, the transmit and receives subcircuit enables are completely
+controlled by the TR pin. If SPI control is selected, any combination
+of receive subcircuits or transmit subcircuits can be turned on at
+a given time. Note that transmit and receive subcircuits cannot be
+turned on simultaneously.
+SPI Control (TR_SOURCE = 0)
+The TR_SPI bit (Bit 1, Register 0x031) controls the device trans-
+mit or receive mode. Register 0x02E, Register 0x02F, and Reg-
+ister 0x031 of the SPI registers turn the transmit and receive
+subcircuits on and off together. Typical operating mode is to set all
+channel and subcircuit enables active (that is, set Register 0x02E
+to 0x7F and Register 0x02F to 0x7F), and then use TX_EN and
+RX_EN (Bits[6:5] of Register 0x31, respectively) to turn on either
+the transmit subcircuits or receive subcircuits, and toggle TR_SPI
+appropriately with the TX_EN and RX_EN bits.
+TR Pin Control (TR_SOURCE = 1)
+When TR_SOURCE = 1, if the TR input is at logic low, the device
+goes into receive mode and all receive subcircuits are turned on. If
+the TR input is at logic high, the device goes into transmit mode,
+and all transmit subcircuits turn on. As a result, all transmit and
+receive switching functionality are completely controlled by a single
+pin.
+
+
+--- Page 38/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 38 of 79
+TRANSMIT AND RECEIVE SWITCH DRIVER
+CONTROL
+The TR_SW_NEG and TR_SW_POS pins are the output pins that
+control the external switches that determine the signal flow direc-
+tion between the transmit and receive modes that the ADAR1000
+operates in. Several register bits and the TR pin work together
+to provide different ways to control the state of the TR_SW_NEG
+and TR_SW_POS pins. Note that either the TR_SW_NEG pin or
+the TR_SW_POS pin is operational at any given time when the
+SW_DRV_EN_TR bit is asserted. When the SW_DRV_EN_TR bit
+is deasserted, both pins are floating.
+To enable the switch drivers, set the SW_DRV_EN_TR bit (Bit 4,
+Register 0x031) to logic high.
+The SW_DRV_TR_STATE bit (Bit 7, Register 0x031) determines
+the polarity of these switch driver outputs (TR_SW_POS and
+TR_SW_NEG) with respect to transmit and receive mode. Allowing
+the polarity to be programmable provides additional flexibility when
+using different transmit and receive switch control configurations
+(see Table 14).
+Table 14. Controlling TR_SW_POS and TR_SW_NEG Output
+SW_DRV_EN_TR
+(Register 0x031,
+Bit 4)
+TR_SOURCE
+(Register 0x031, Bit
+2)1
+TR
+(Chip
+Input)1
+TR_SPI
+(Register 0x031,
+Bit 1)1
+SW_DRV_TR_
+MODE_SEL(Registe
+r 0x030, Bit 7)1
+Device
+State1
+Transmit/
+Receive
+SW_DRV_TR_
+STATE
+(Register 0x031, Bit
+7)1
+TR_SW_POS
+(Chip Output)
+TR_SW_NEG
+(Chip Output)
+0
+X
+X
+X
+X
+X
+X
+Floating
+Floating
+1
+0
+X
+0
+0
+Receive
+0
+0 V
+Floating
+1
+0
+X
+0
+0
+Receive
+1
+3.3 V
+Floating
+1
+0
+X
+1
+0
+Transmit
+0
+3.3 V
+Floating
+1
+0
+X
+1
+0
+Transmit
+1
+0 V
+Floating
+1
+1
+0
+X
+0
+Receive
+0
+0 V
+Floating
+1
+1
+0
+X
+0
+Receive
+1
+3.3 V
+Floating
+1
+1
+1
+X
+0
+Transmit
+0
+3.3 V
+Floating
+1
+1
+1
+X
+0
+Transmit
+1
+0 V
+Floating
+1
+0
+X
+0
+1
+Receive
+0
+Floating
+0 V
+1
+0
+X
+0
+1
+Receive
+1
+Floating
+−5 V
+1
+0
+X
+1
+1
+Transmit
+0
+Floating
+−5 V
+1
+0
+X
+1
+1
+Transmit
+1
+Floating
+0 V
+1
+1
+0
+X
+1
+Receive
+0
+Floating
+0 V
+1
+1
+0
+X
+1
+Receive
+1
+Floating
+−5 V
+1
+1
+1
+X
+1
+Transmit
+0
+Floating
+−5 V
+1
+1
+1
+X
+1
+Transmit
+1
+Floating
+0 V
+1 X means don’t care.
+
+
+--- Page 39/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 39 of 79
+PA BIAS OUTPUT CONTROL
+The four PA bias output voltages (PA_BIAS1, PA_BIAS2,
+PA_BIAS3, and PA_BIAS4) are controlled by four separate DACs,
+which in turn are controlled by a combination of inputs (note that
+some inputs are don't care depending on the settings).
+See Table 16 for all control combinations.
+Table 15. PA Bias Output Control by Inputs
+Input
+Bit/Pin Name
+Description
+Register 0x30
+Bit 6
+BIAS_CTRL
+Determines if the bias DACs always use the EXT_PAx_BIAS_ON data for each channel (BIAS_CTRL = 0)
+or if the bias DACs can be controlled with the other inputs (BIAS_CTRL = 1).
+Register 0x31
+Bit 2
+TR_SOURCE
+Determines whether switching between transmit and receive mode is controlled by the SPI register or the
+TR input.
+Bit 6
+TX_EN
+Global transmit enable. Logic high enables all four transmit paths (if individual Chx_TX_EN bits are also
+logic high). See Figure 94.
+Register 0x029 to Register 0x02C or
+from Several locations in memory; see
+the memory map on the ADAR1000
+product page.
+EXT_PAx_BIAS_ON
+External PA Bias on data that can be sourced from multiple locations.
+Register 0x046 to Register 0x049 or
+from Several locations in memory; see
+the memory map on the ADAR1000
+product page.
+EXT_PAx_BIAS_OFF
+External PA Bias off data that can be sourced from multiple locations.
+Input Pins
+TR
+Determines transmit or receive mode of chip when TR_SOURCE = 1.
+PA_ON
+Determines whether to use the CHx_PA_BIAS_ON or CHx_PA_BIAS_OFF value when the ADAR1000 is
+in transmit mode, BIAS_CTRL is set to 1, and in TR pin control.
+Table 16. Control of PA Bias Outputs
+BIAS_CTRL
+(Register 0x030, Bit 6)
+TR_SOURCE
+(Register 0x031, Bit 2)
+TX_EN
+(Register 0x031, Bit 6)
+TR
+(Input to Chip)
+PA_ON
+(Input to Chip)
+PA Bias Bits Used
+(x = 1, 2, 3, or 4)
+0
+X1
+X1
+X1
+X1
+EXT_PAx_BIAS_ON
+1
+0
+0
+X1
+X1
+EXT_PAx_BIAS_OFF
+1
+0
+1
+X1
+X1
+EXT_PAx_BIAS_ON
+1
+1
+0
+0
+X1
+EXT_PAx_BIAS_OFF
+1
+1
+0
+1
+0
+EXT_PAx_BIAS_OFF
+1
+1
+0
+1
+1
+EXT_PAx_BIAS_ON
+1 X means don't care.
+
+
+--- Page 40/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 40 of 79
+LNA BIAS OUTPUT CONTROL
+The LNA_BIAS output voltage is controlled by a DAC, which in turn
+is controlled by a combination of inputs (see Table 17).
+The output is set by the LNA_BIAS_ON data when the ADAR1000
+is in receive mode or LNA_BIAS_OFF data when in transmit mode,
+if BIAS_CTRL is set to 1. If BIAS_CTRL set to 0, the output is set
+by LNA_BIAS_ON data. See Table 18 for all control combinations.
+Table 17. LNA Bias Output Control by Inputs
+Input
+Bit/Pin Name
+Description
+Register 0x30
+Bit 4
+LNA_BIAS_OUT_EN
+The LNA_BIAS output is enabled if LNA_BIAS_OUT_EN = 1. If LNA_BIAS_OUT_EN = 0, the output is
+open (three-state).
+Bit 6
+BIAS_CTRL
+Determines if the bias DAC always use the EXT_LNA_BIAS ON data (BIAS_CTRL = 0) or if the bias DAC
+can be controlled with the other inputs (BIAS_CTRL = 1).
+Register 0x31
+Bit 2
+TR_SOURCE
+Determines whether switching between transmit and receive mode is controlled by the SPI register or the
+TR input.
+Bit 6
+RX_EN
+Global receive enable. Logic high enables all four receive paths (if individual Chx_RX_EN bits are also
+logic high). See Figure 93.
+Register 0x2D or from Several loca-
+tions in memory; see the memory map
+on the ADAR1000 product page.
+EXT_LNA_BIAS_ON
+External LNA Bias on data that can be sourced from multiple locations.
+Register 0x4A or from Several loca-
+tions in memory; see the memory map
+on the ADAR1000 product page.
+EXT_LNA_BIAS_OFF
+External LNA Bias off data that can be sourced from multiple locations.
+Input Pin
+TR
+Determines transmit or receive mode of chip when TR_SOURCE = 1
+Table 18. Control of LNA_BIAS Output
+LNA_BIAS_OUT_EN
+(Register 0x030, Bit 4)
+BIAS_CTRL
+(Register 0x030, Bit 6)
+TR_SOURCE
+(Register 0x031, Bit 2)
+RX_EN
+(Register 0x031, Bit 5)
+TR
+(Input to Chip)
+LNA Bias Bits Used
+0
+X1
+X1
+X1
+X1
+Open circuit (floating)
+1
+0
+0
+0
+X1
+EXT_LNA_BIAS_ON
+1
+0
+0
+1
+X1
+EXT_LNA_BIAS_ON
+1
+1
+0
+0
+X1
+EXT_LNA_BIAS_OFF
+1
+1
+0
+1
+X1
+EXT_LNA_BIAS_ON
+1
+0
+1
+0
+0
+EXT_LNA_BIAS_ON
+1
+0
+1
+0
+1
+EXT_LNA_BIAS_ON
+1
+1
+1
+0
+0
+EXT_LNA_BIAS_ON
+1
+1
+1
+0
+1
+EXT_LNA_BIAS_OFF
+1 X means don't care.
+
+
+--- Page 41/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 41 of 79
+PA BIAS, LNA BIAS, AND SWITCH BIAS SETUP
+EXAMPLES
+Upon setup, all three sets of bias pins can either be controlled with
+either the TR pin or with the SPI. Note the state of all the bias pins
+upon power-up.
+►The PA_BIASx pins assume the EXT_PAx_BIAS_ON values
+upon power-up. That is, all PA_BIASx pins are driven to 0 V.
+►The LNA_BIAS pin is floating upon power-up.
+►TR_SW_POS and TR_SW_NEG are floating upon power-up.
+PA Bias Setup for TR Pin Control Example
+Pull TR pin low to put the ADAR1000 into receive mode after TR
+pin control is established. See Table 19 for the bit settings.
+Table 19. Bias Bit Settings for TR Pin Control
+Register/Bit
+Bit Setting
+Description
+Register 0x30, Bit 6
+BIAS_CTRL = 1
+Enables control of bias
+pins.
+Register 0x31, Bit 2
+TR_SOURCE = 1
+The TR pin controls trans-
+mit or receive device
+mode.
+Register 0x38, Bit 5
+BIAS_RAM_BYPASS = 1
+Source all bias data from
+registers.
+Set the desired bias on and bias off values for the external PAs in
+the following registers:
+►Register 0x29: EXT_PA1_BIAS_ON
+►Register 0x2A: EXT_PA2_BIAS_ON
+►Register 0x2B: EXT_PA3_BIAS_ON
+►Register 0x2C: EXT_PA4_BIAS_ON
+►Register 0x46: EXT_PA1_BIAS_OFF
+►Register 0x47: EXT_PA2_BIAS_OFF
+►Register 0x48: EXT_PA3_BIAS_OFF
+►Register 0x49: EXT_PA4_BIAS_OFF
+After pulling the TR pin low and making these SPI writes, the
+PA_BIASx pins assume the EXT_PAx_BIAS_OFF values. Pulling
+the TR pin high causes the PA_BIASx pins to assume the
+EXT_PAx_BIAS_ON values. This setup example assumes that the
+PA_ON pin is pulled high.
+PA Bias Setup for SPI Control Example
+Set the bits as shown in Table 20.
+Table 20. Bias Bit Settings for SPI Control
+Register/Bit
+Bit Setting
+Description
+Register 0x30, Bit 6
+BIAS_CTRL = 1
+Enables control of bias
+pins.
+Register 0x31
+Table 20. Bias Bit Settings for SPI Control
+Register/Bit
+Bit Setting
+Description
+Bit 1
+TR_SPI = 0
+Puts the ADAR1000 into
+Rx mode.
+Bit 2
+TR_SOURCE = 0
+SPI controls transmit or
+receive device mode.
+Bit 5
+RX_EN = 1
+Enable receive paths.
+Bit 6
+TX_EN = 0
+Disables transmit paths.
+Register 0x38, Bit 5
+BIAS_RAM_BYPASS = 1
+Source all bias data from
+registers.
+Set the desired bias on and bias off values for the external PAs in
+the following registers:
+►Register 0x29: EXT_PA1_BIAS_ON
+►Register 0x2A: EXT_PA2_BIAS_ON
+►Register 0x2B: EXT_PA3_BIAS_ON
+►Register 0x2C: EXT_PA4_BIAS_ON
+►Register 0x46: EXT_PA1_BIAS_OFF
+►Register 0x47: EXT_PA2_BIAS_OFF
+►Register 0x48: EXT_PA3_BIAS_OFF
+►Register 0x49: EXT_PA4_BIAS_OFF
+After making these SPI writes, the PA_BIASx pins assume the
+EXT_PAx_BIAS_OFF values. Setting TX_EN = 1 causes the
+PA_BIASx pins to assume the EXT_PAx_BIAS_ON values. It is
+important to note that the PA_BIASx pins follow the TX_EN bit, not
+the TR_SPI bit, while in SPI control.
+The state of the TR and PA_ON pins have no effect on the
+PA_BIASx pins while in SPI control mode.
+LNA Bias Setup for TR Pin Control Example
+Pull TR pin low to put the ADAR1000 into receive mode after TR
+pin control is established. Set the bits as shown in Table 21.
+Table 21. LNA Bias Bit Settings for TR Pin Control
+Register/Bit
+Bit Setting
+Description
+Register 0x30
+Bit 4
+LNA_BIAS_OUT_EN = 1
+Enables LNA bias driver.
+Bit 6
+BIAS_CTRL = 1
+Enables control of bias
+pins.
+Register 0x31
+Bit 2
+TR_SOURCE = 1
+TR pin controls transmit or
+receive device mode.
+Register 0x38, Bit 5
+BIAS_RAM_BYPASS = 1
+Source all bias data from
+registers.
+Set the desired bias on and bias off values for the external LNA in
+the following registers:
+►Register 0x2D: EXT_LNA_BIAS_ON
+►Register 0x4A: EXT_LNA_BIAS_OFF
+
+
+--- Page 42/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 42 of 79
+After pulling the TR pin low and making these SPI writes, the
+LNA_BIAS pin assumes the EXT_LNAx_BIAS_ON value. Pulling
+the TR pin high causes the LNA_BIAS pin to assume the
+EXT_LNAx_BIAS_OFF values.
+LNA Bias Setup for SPI Control Example
+Set the bits as shown in Table 22.
+Table 22. LNA Bias Bit Settings for SPI Control
+Register/Bit
+Bit Setting
+Description
+Register 0x30
+Bit 4
+LNA_BIAS_OUT_EN = 1
+Enables LNA bias driver.
+Bit 6
+BIAS_CTRL = 1
+Enables control of bias pins.
+Register 0x31
+Bit 1
+TR_SPI = 0
+Puts the ADAR1000 into
+receive mode.
+Bit 2
+TR_SOURCE = 0
+SPI controls transmit or
+receive device mode.
+Bit 5
+RX_EN = 1
+Enable receive paths.
+Bit 6
+TX_EN = 0
+Disables transmit paths.
+Register 0x38, Bit 5
+BIAS_RAM_BYPASS = 1
+Source all bias data from
+registers.
+Set the desired bias on and bias off values for the external LNA in
+the following registers:
+►Register 0x2D: EXT_LNA_BIAS_ON
+►Register 0x4A: EXT_LNA_BIAS_OFF
+After making these SPI writes, the LNA_BIAS pin assumes the
+EXT_LNAx_BIAS_ON value. Setting RX_EN = 0 causes the
+LNA_BIAS pin to assume the EXT_LNAx_BIAS_OFF values. It is
+important to note that the LNA_BIAS pin follows the RX_EN bit, not
+the TR_SPI bit, while in SPI control.
+Allowable PA and LNA States While in SPI
+Control
+The external bias pins, PA_BIASx and LNA_BIAS, follow the
+TX_EN and RX_EN bits, respectively, while in SPI control. While
+the ADAR1000 is controlling external PAs and/or LNAs, the user
+should either assert TX_EN or RX_EN high, but not both. In a
+power-down mode, both bits are set to low. However, both TX_EN
+and RX_EN can be asserted high. In this case, both the PA_BIASx
+and LNA_BIAS pins assume the values in their bias on registers.
+Table 23 outlines the four possible bias cases.
+Table 23. Possible External Bias States While in SPI Control
+Tx_EN
+RX_EN
+PA Bias Bits Used
+LNA Bias Bit Used
+0
+0
+EXT_PAx_BIAS_OFF
+EXT_LNA_BIAS_OFF
+0
+1
+EXT_PAx_BIAS_OFF
+EXT_LNA_BIAS_ON
+1
+0
+EXT_PAx_BIAS_ON
+EXT_LNA_BIAS_OFF
+1
+1
+EXT_PAx_BIAS_ON
+EXT_LNA_BIAS_ON
+Note that the device mode, and thus the transmit/receive switch,
+is controlled with the TR_SPI bit. If TX_EN and RX_EN are both
+high, the external PAs and LNA are biased on, but the external
+transmit/receive switch can either be in transmit mode or receive
+mode, controlled by the TR_SPI bit. Note that in this situation, the
+external paths are powered up, but the ADAR1000 powers down its
+subcircuits when both TX_EN and RX_EN are high.
+Switch Bias Setup for TR Control Example
+Pull the TR pin low to put the ADAR1000 into receive mode after
+TR pin control is established.
+The user must choose between TR_SW_POS and TR_SW_NEG
+because their operation is mutually exclusive, by setting
+SW_DRV_TR_MODE_SEL (Bit 7 in Register 0x30).
+►When SW_DRV_TR_MODE_SEL = 0, TR_SW_POS is selected
+►When SW_DRV_TR_MODE_SEL = 1, TR_SW_NEG is selected
+Set the following bits in Register 0x31, as shown in Table 24.
+Table 24. Register 0x31 Bit Settings for Switch Bias Setup
+Bit
+Bit Setting
+Description
+Bit 2
+TR_SOURCE = 1
+TR pin controls transmit or receive device
+mode
+Bit 4
+SW_DRV_EN_TR = 1
+Enables positive and negative switch
+drivers
+Bit 7
+SW_DRV_TR_STATE = 1
+Sets switch driver polarity relative to
+transmit or receive mode
+If SW_DRV_TR_MODE_SEL = 0,
+►TR_SW_POS = 3.3 V while in receive mode (TR low)
+►TR_SW_POS = 0 V while in transmit mode (TR high)
+If SW_DRV_TR_MODE_SEL = 1,
+►TR_SW_NEG = -5V while in receive mode (TR low)
+►TR_SW_NEG = 0V while in transmit mode (TR high)
+Note that the switch bias outputs follow the TR pin while in TR pin
+control.
+Switch Bias Setup for SPI Control Example
+The user must choose between the TR_SW_POS and
+TR_SW_NEG switch bias outputs, because their operation is
+mutually exclusive, by setting SW_DRV_TR_MODE_SEL (Bit 7in
+Register 0x30).
+►When SW_DRV_TR_MODE_SEL = 0, TR_SW_POS selected
+►When SW_DRV_TR_MODE_SEL = 1, TR_SW_NEG selected
+Set the following bits in Register 0x31, as shown in Table 24.
+Table 25. Register 0x31 Bit Settings for Switch Bias Setup, SPI Control
+Bit
+Bit Setting
+Description
+Bit 1
+TR_SPI = 0
+Puts ADAR1000 in receive mode.
+
+
+--- Page 43/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 43 of 79
+Table 25. Register 0x31 Bit Settings for Switch Bias Setup, SPI Control
+Bit
+Bit Setting
+Description
+Bit 2
+TR_SOURCE = 0
+SPI controls transmit or receive device
+mode
+Bit 4
+SW_DRV_EN_TR = 1
+Enables positive and negative switch
+drivers
+Bit 7
+SW_DRV_TR_STATE = 1
+Sets switch driver polarity relative to
+transmit or receive mode
+If SW_DRV_TR_MODE_SEL = 0,
+►TR_SW_POS = 3.3 V while in receive mode (TR_SPI = 0)
+►TR_SW_POS = 0 V while in transmit mode (TR_SPI = 1)
+If SW_DRV_TR_MODE_SEL = 1,
+►TR_SW_NEG = −5 V while in receive mode (TR_SPI = 0)
+►TR_SW_NEG = 0V while in transmit mode (TR_SPI = 1)
+Note that while in SPI control,
+►The switch bias outputs follow the TR_SPI bit.
+►The state of the TR pin has no effect on the switch bias outputs.
+TRANSMIT/RECEIVE DELAY CONTROL
+The delays between switching from transmit to receive and receive
+to transmit, Delay 1 and Delay 2, are controlled via Register 0x4B
+and Register 0x4C, respectively. The delay time is proportional to
+the SPI clock period. With a 50 ns clock period (20 MHz), the
+maximum value for either Delay 1 or Delay 2 is 750 ns. This
+delay value corresponds to a delay code of 15 or 0xF in either
+the top and/or bottom nibbles of Register 0x4B and Register 0x4C.
+A delay value of 0 corresponds to 0 ns delay, a delay value of 1
+corresponds to 50 ns, a delay value of 2 corresponds to 100 ns,
+and so on. Note that Delay 1 and/or Delay 2 only take effect when
+all of the following conditions are met:
+►When in TR pin control
+►When SCLK is applied after the TR pin changes state
+►When all the delay values in Register 0x4B and Register 0x4C
+are nonzero
+The exact transmit to receive sequence is as follows:
+1. The TR pin changes state from high to low.
+2. The PA_BIASx pins change state from their on value to off
+value. Transmit subcircuits power down.
+3. The delay set by TX_TO_RX_DELAY_1 occurs.
+4. The internal transmit/receive switches switch to receive posi-
+tion. TR_SW_POS or TR_SW_NEG changes state.
+5. The delay set by TX_TO_RX_DELAY_2 occurs.
+6. The LNA_BIAS pin changes state from off to on value. Receive
+subcircuits power up.
+The exact receive to transmit sequences is as follows:
+1. The TR pin changes state from low to high.
+2. The LNA_BIAS pin changes state from on to off value. Receive
+subcircuits power down.
+3. The delay set by RX_TO_TX_DELAY_1 occurs.
+4. The internal transmit/receive switches switch to transmit posi-
+tion. TR_SW_POS or TR_SW_NEG changes state.
+5. The delay set by RX_TO_TX_DELAY_2 occurs.
+6. The PA_BIASx pins change state from their off value to on
+value. Transmit subcircuits power up.
+PA Bias Silicon Error When Using Delay
+A silicon error exists that prevents all four of the PA bias pins from
+changing state (from either their off to on value or on to off value)
+after the TR pin changes its state, when delay values in Register
+0x4B and Register 0x4C are all nonzero. This error means that the
+PA bias pins stay at the same state as they were before the delays
+were programmed, and limits the PA bias control to either their on
+value or off value when switching from transmit to receive or receive
+to transmit. If external PA bias control is required with a delay, an
+external alternative bias scheme must be used.
+Transmit and Receive Mode Switching
+Figure 96 shows the timing for transmit and receive mode switch-
+ing.
+Figure 96. Timing for Transmit and Receive Mode Switching
+
+
+--- Page 44/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 44 of 79
+ADAR1000 AND ADTR1107
+The ADAR1000 is designed to work with the ADTR1107 front-end
+IC transmit and receive module. The ADAR1000 can connect to
+and control four ADTR1107s. Once the ADAR1000 and ADTR1107
+are powered up and SPI writes occur for the necessary ADAR1000
+setup, only the TR pin on the ADAR1000 needs to be used to
+control the following:
+►Receive or transmit mode on both devices
+►ADAR1000 path enabling and disabling
+►ADTR1107 PA and LNA gate bias on and off voltage levels
+See the Transmit/Receive Delay Control section for more informa-
+tion.
+Interfacing
+The ports of each device are designed for glueless interfacing,
+requiring no components between the connected ports. The RF
+ports are strategically located on both devices to enable layout
+routing without crisscrossing the RF lines. This interface is shown
+schematically in Figure 97.
+Also shown in Figure 97 are the ADAR1000 PA bias, LNA bias,
+and switch bias pins driving the ADTR1107 PA gate, LNA gate, and
+switch control pins, respectively. Note that there is a dedicated PA
+bias pin for each connected ADTR1107, but only a single LNA bias
+pin drives four ADTR1107 devices.
+Supply and Bias Sequencing
+The ADTR1107 requires specific bias up and bias down sequences
+for its four supply voltages, two gate biases, and switch control.
+On an application board, the ADAR1000 and ADTR1107 can share
+the 3.3 V supply, which is assumed going forward. The ADTR1107
+PA gate bias depends on the ADAR1000 −5 V supply powering up
+first before the PA VDD is powered on. The following is the proper
+power-up and biasing sequence when the ADAR1000 is connected
+to the ADTR1107.
+1. Connect a 3.3 V supply to the ADTR1107 via VDD_SW and
+VDD_LNA and to the ADAR1000 main supply.
+2. Connect a −3.3 V supply to the ADTR1107 via VSS_SW.
+3. Set the ADAR1000 TR_SW_POS pin to drive the ADTR1107
+CTRL_SW pin.
+4. Connect a −5 V supply to ADAR1000 as the secondary supply.
+5. Set the ADAR1000 PA_BIASx pins to −2.5 V to drive the
+ADTR1107 VGG_PA.
+6. Connect a 5 V supply to the ADTR1107 VDD_PA pin.
+The following sections detail how to properly set the various bias
+pins during the power-up procedure.
+Figure 97. Interfacing the ADAR1000 to the ADTR1107; One Channel Shown
+
+
+--- Page 45/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 45 of 79
+Setting the ADAR1000 TR_SW_POS
+When powering up the ADAR1000 and ADTR1107 together, the
+TR_SW_POS pin is the first bias pin that must be set in the
+sequence. To set this pin after bringing up the +3.3 V and −3.3 V
+supply voltages while in TR control, follow these steps:
+1. Pull the TR pin low.
+2. In Register 0x31, set TR_SOURCE = 1 (Bit 2),
+SW_DRV_EN_TR = 1 (Bit 4), and SW_DRV_TR_STATE = 1
+(Bit 7).
+Pulling the TR pin low and setting the Register 0x31 bits puts the
+ADAR1000 in receive mode and sets the TR_SW_POS pin to 3.3
+V, which, when driving the ADTR1107 CTRL_SW pin, also puts the
+ADTR1107 in receive mode.
+If in SPI control, set the following bits in Register 0x31 to set
+TR_SW_POS:
+►Bit 1: TR_SPI = 0
+►Bit 2: TR_SOURCE = 0
+►Bit 4: SW_DRV_EN_TR = 1
+►Bit 7: SW_DRV_TR_STATE = 1
+Setting the Register 0x31 bits puts the ADAR1000 in receive mode
+and sets the TR_SW_POS pin to 3.3 V, which, when driving the
+ADTR1107 CTRL_SW pin, also puts the ADTR1107 in receive
+mode.
+All other bits not mentioned are assumed to be default values.
+Setting the ADAR1000 PA_BIASx Pins
+For safe power up of the ADTR1107 PA, the PA_BIASx bias pins
+must be set to −2.5 V before the +5 V supply is powered up. Once
+the −5 V supply for the ADAR1000 is powered up, the user can
+make the following SPI writes if in TR control:
+1. Set Bit 6 in Register 0x30, BIAS_CTRL = 1.
+2. Set Bit 5 in Register 0x38, BIAS_RAM_BYPASS = 1
+3. Set the data in Register 0x29, Register 0x2A, Register
+0x2B, and Register 0x2C for approximately −1.1 V, with
+EXT_PAx_BIAS_ON = 0x39 (where x = 1, 2, 3, or 4).
+4. Set the data in Register 0x46, Register 0x47, Register
+0x48, and Register 0x49 for approximately −2.5 V, with
+EXT_PAx_BIAS_OFF = 0x85 (where x = 1, 2, 3, or 4).
+With TR low, all PA_BIASx pins are set to approximately −2.5 V,
+which is a safe voltage for the VGG_PA pins when the +5 V supply
+is powered up. After the +5 V supply is powered up, TR can be
+pulled high, which sets all the PA_BIASx pins to approximately −1.1
+V, which in turn sets the ADTR1107 PA bias current to 220 mA.
+If in SPI control, to set the PA_BIASx pins, follow these steps:
+1. Set Bit 6 in Register 0x30, BIAS_CTRL = 1.
+2. Set Bit 6 in Register 0x31, TX_EN = 0.
+3. Set Bit 5 in Register 0x38, BIAS_RAM_BYPASS = 1.
+4. Set the data in Register 0x29, Register 0x2A, Register
+0x2B, and Register 0x2C for approximately −1.1 V, with
+EXT_PAx_BIAS_ON = 0x39 (where x = 1, 2, 3, or 4).
+5. Set the data in Register 0x46, Register 0x47, Register
+0x48, and Register 0x49 for approximately −2.5 V, with
+EXT_PAx_BIAS_OFF = 0x85 (where x = 1, 2, 3, or 4).
+With TX_EN = 0, all PA_BIASx pins are set to approximately −2.5
+V, which is a safe voltage for the VGG_PA pins when the +5 V
+supply is powered up. After the +5 V supply is powered up, setting
+TX_EN = 1 sets all the PA_BIASx pins to approximately −1.1 V,
+which in turn sets the ADTR1107 PA bias current to 220 mA.
+All other bits not mentioned maintain their values from the Setting
+the ADAR1000 TR_SW_POS section.
+Setting the ADAR1000 LNA_BIAS Pin
+Connecting the ADAR1000 LNA_BIAS pin to the ADTR1107
+VGG_LNA is optional because the ADTR1107 LNA is self biased.
+However, if a different LNA bias setting is desired or if the LNA must
+be debiased while in transmit mode, perform the following writes to
+drive the VGG_LNA if in TR control:
+1. Set Bit 4 in Register 0x30, LNA_BIAS_OUT_EN = 1.
+2. Set the data in Register 0x2D for 0 V, with EXT_LNA_BIAS_ON
+= 0x00.
+3. Set the data in Register 0x4A for approximately −2 V, with
+EXT_LNA_BIAS_OFF = 0x68.
+With TR low and after making these SPI writes, the LNA_BIAS
+pin is at 0 V. Taking TR high causes the LNA_BIAS pin to be at
+approximately −2 V.
+If in SPI control, to set the LNA_BIAS pin, follow these steps:
+1. Set Bit 4 in Register 0x30, LNA_BIAS_OUT_EN = 1.
+2. Set Bit 5 in Register 0x31, RX_EN = 1.
+3. Set the data in Register 0x2D for 0 V, with EXT_LNA_BIAS_ON
+= 0x00.
+4. Set the data in Register 0x4A for approximately −2 V, with
+EXT_LNA_BIAS_OFF = 0x68.
+After making these SPI writes, the LNA_BIAS pin is at 0 V. Taking
+RX_EN = 0 causes the LNA_BIAS pin to be at approximately −2 V.
+All other bits not mentioned maintain their values from the Setting
+the ADAR1000 PA_BIASx Pins section.
+POWERING THE ADAR1000
+The ADAR1000 has two power supply domains, +3.3V and −5 V.
+These power supplies can be driven with the synchronous step
+down regulator LT8609S and the inverting dc-to-dc converter
+LT3462, respectively. With a single 5.5 V supply driving both the
+LT8609S and LT3462, the LT8609S generates the +3.3 V supply,
+while the LT3462 generates the −5 V supply.
+
+
+--- Page 46/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 46 of 79
+A single ADAR1000 is tested using the LT8609S and LT3462. Fig-
+ure 98 and Figure 99 show the rise and fall times of the LNA_BIAS
+pin under a maximum load condition of −10 mA. Figure 100 and
+Figure 101 show the rise and fall times of all four PA_BIASx pins,
+each with a maximum load condition of −10 mA. A simplified block
+diagram of the test setup for the LT8609S and LT3462 is shown in
+Figure 102.
+If more than two ADAR1000 devices must be powered, and if the
+user does not want multiple LT8609S and LT3462 devices, there
+are several solutions that power from four to 64 ADAR1000 devices
+by using a single chip per voltage supply. Table 26 shows these
+solutions by providing the quantity of ADAR1000 devices and the
+corresponding chips required to power multiple ADAR1000 devices.
+Figure 98. LNA_BIAS Rise Time; −10 mA Load, Measured on P9A of
+ADAR1000-EVALZ
+Figure 99. LNA_BIAS Fall Time; −10 mA Load, Measured on P9A of
+ADAR1000-EVALZ
+Figure 100. PA_BIAS1, PA_BIAS2, PA_BIAS3, or PA_BIAS 4 Rise Time; −10
+mA Load, Measured on P9A of ADAR1000-EVALZ
+Figure 101. PA_BIAS1, PA_BIAS2, PA_BIAS3, or PA_BIAS4 Fall Time; −10 mA
+Load, Measured on P9A of ADAR1000-EVALZ
+Figure 102. Block Diagram of the LT8609S and the LT3462 Powering the
+ADAR1000
+Table 26. Power Solutions for Multiple ADAR1000 Devices
+ADAR1000 Quantity
+Supplying +3.3 V
+Supplying −5 V
+4
+LT8609S
+LT1931
+16
+LT8642S
+LT3580
+32
+LTC7151S
+LT3957A
+64
+LTM4636
+LT3757
+
+
+--- Page 47/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 47 of 79
+RETURN LOSS WHILE POWERED DOWN
+The ADAR1000 is designed to be a half-duplex (TDD) device,
+frequently switching between receive and transmit modes. Each
+time the device switches into receive mode, all the transmit subcir-
+cuits shut off. Similarly, when switching into transmit mode, all the
+receive subcircuits shut off.
+There is a large amount of isolation between the RF_IO port
+and the nearest active circuitry. Therefore, the return loss for the
+common RF_IO port when powered down does not vary apprecia-
+bly because this port is directly connected to the passive power
+combiner/splitter network. The return loss is shown in Figure 103.
+Because there is active circuitry on all receive input ports and trans-
+mit output ports, the return loss varies when switching between
+receive and transmit modes. The difference in return loss between
+a receive port when powered off (chip reset state) and a receive
+port when the receive path is powered up in its nominal bias setting
+is shown in Figure 104. The difference in return loss between a
+transmit port when powered off (chip reset state) and a transmit port
+when the transmit path is powered up in its nominal bias setting is
+shown in Figure 105.
+The increased mismatch due to the degradation of the return loss
+of the transmit ports while powered down is not a problem because
+there is no signal on the transmit ports while in this situation.
+This situation assumes the impedance mismatch presented to the
+input of the external PA does not cause any other issues, such as
+oscillations. However, there can be a signal on the receive ports
+when the receive paths are powered down if, for example, the
+off-chip LNA driving the receive port is not powered down as well.
+The user must ensure that the voltage standing wave ratio (VSWR)
+between each receive port and the device driving the receive port is
+within acceptable bounds.
+Figure 103. RF_IO Return Loss While Powered Up and Powered Down
+Figure 104. Receive Port Return Loss While Powered Up and Powered Down
+Figure 105. Transmit Return Loss While Powered Up and Powered Down
+SPI CONSIDERATIONS
+The ADAR1000 has a silicon error that prevents individual chip
+SPI readback when multiple chips share the SPI bus and all chips
+are in the same SPI mode (3-wire vs. 4-wire). To perform SPI
+readbacks properly, the Register 0x00 special functionality must be
+considered. The following sections detail how to use the special
+functionality of Register 0x00 to solve the readback issue. For the
+following sections, refer to Table 27
+Table 27. Chip Index, and Corresponding Chip ID Bits and Pins
+Chip Index
+Address
+Bits[14:13]
+ADDR1 Pin State
+ADDR0 Pin State
+Chip 0
+0b00
+Low
+Low
+Chip 1
+0b01
+Low
+High
+Chip 2
+0b10
+High
+Low
+Chip 3
+0b11
+High
+High
+Register 0x00
+Register 0x00 has the following functionality:
+►When issuing a soft reset to Chip 0, all chips on the SPI bus
+perform a soft reset.
+►When issuing a soft reset to Chip 1, Chip 2, or Chip 3, no chips
+on the SPI bus reset.
+►When asserting LSB first, address ascension, or the SDO active
+bits on Chip 0, all chips on the SPI bus are set to LSB first mode,
+address ascension mode, or SDO enabled, respectively.
+
+
+--- Page 48/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 48 of 79
+►When asserting LSB first, address ascension, or the SDO active
+bit on Chip x (x = 1, 2, or 3), only Chip x is set to LSB first mode,
+address ascension mode, or SDO enabled, respectively.
+Soft reset does not affect Register 0x00. That is, LSB first, address
+ascension, and/or the SDO active bits can be asserted high in the
+same SPI write as the soft reset, and those bits remain high. The
+soft reset bits are self clearing.
+Note that the reset of all chips on the SPI bus when a soft reset
+command is issued to Chip 0 is similar in behavior to the write all
+command when Address Bits[14:11] = 0b0001. However, these two
+functions are not interrelated, and serve different purposes.
+SDO Readback Problem and Solution
+The SDO readback problem is encountered whenever there is more
+than one ADAR1000 chip on the SPI bus. The SDO pins of the
+ADAR1000 chips, which are not issued a readback command, are
+not in tristate during the readback. When the SDO pins are not in
+tristate, the output drivers of the SDO pins erroneously pull low,
+which then overpowers the readback of the addressed chip, and
+causes the addressed chip to read back incorrectly. Damage to the
+SDO pins can happen during the bus contention. Refer to SDO Bus
+Connections for information about the SDO current limiting resistor
+to prevent damage.
+For a 4-wire SPI, the general procedure is to leave the SDO pins
+disabled for the ADAR1000 chips that are not being issued a
+readback command, and only enable the ADAR1000 chip that is to
+be read back from. For 3-wire SPI mode, it is the opposite. Enable
+the SDO pin on the devices to be read back from, and disable SDO
+on the device that is not to be read back from. To read back back
+from Chip 0, three additional writes are needed to Chip 1, Chip 2,
+and Chip 3 to set the SDO pin accordingly, depending on the SPI
+mode.
+Example solutions for 4-wire and 3-wire SPI modes are detailed in
+Table 28 and Table 29. Both tables assume Chip 0 is on the SPI
+bus, LSB_FIRST is low, and ADDR_ASCN is low.
+Table 28. 4-Wire SPI Mode—Chip 0, Chip 1, Chip 2, and Chip 3 Share SPI Bus
+SPI Type
+Address
+Bits
+Data
+Comments
+Write
+0x0000
+0x00
+Disable SDO pin on all chips
+Write
+0x2000
+0x18
+Enable Chip 1 SDO pin
+Write
+0x200A
+0xAA
+Test write to Chip 1 scratchpad
+Read
+0xA00A
+0xAA
+Test read from Chip 1 scratchpad
+Write
+0x2000
+0x00
+Disable Chip 1 SDO
+Write
+0x400A
+0xAA
+Test write to Chip 2 scratchpad
+Read
+0xC00A
+0xAA
+Test read from Chip 2 scratchpad
+Write
+0x4000
+0x00
+Disable Chip 2 SDO
+Write
+0x600A
+0xAA
+Test write to Chip 3 scratchpad
+Read
+0xE00A
+0xAA
+Test read from Chip 3 scratchpad
+Write
+0x6000
+0x00
+Disable Chip 3 SDO
+Write
+0x0000
+0x18
+Enable SDO pin on all chips
+Table 28. 4-Wire SPI Mode—Chip 0, Chip 1, Chip 2, and Chip 3 Share SPI Bus
+SPI Type
+Address
+Bits
+Data
+Comments
+Write
+0x2000
+0x00
+Disable Chip 1 SDO pin
+Write
+0x4000
+0x00
+Disable Chip 2 SDO pin
+Write
+0x6000
+0x00
+Disable Chip 3 SDO pin
+Write
+0x000A
+0xAA
+Test write to Chip 0 scratchpad
+Read
+0x000A
+0xAA
+Test read from Chip 0 scratchpad
+Write
+0x0000
+0x00
+Disable SDO pin on all chips
+Table 29. 3-Wire SPI Mode—Chip 0, Chip 1, Chip 2, and Chip 3 Share SPI Bus
+SPI Type
+Address
+Bits
+Data
+Comments
+Write
+0x0000
+0x18
+Enable SDO pin on all chips
+Write
+0x2000
+0x00
+Disable Chip 1 SDO pin
+Write
+0x200A
+0xAA
+Test write to Chip 1 scratchpad
+Read
+0xA00A
+0xAA
+Test read from Chip 1 scratchpad
+Write
+0x2000
+0x18
+Enable Chip 1 SDO
+Write
+0x400A
+0xAA
+Test write to Chip 2 scratchpad
+Read
+0xC00A
+0xAA
+Test read from Chip 2 scratchpad
+Write
+0x4000
+0x18
+Enable Chip 2 SDO
+Write
+0x600A
+0xAA
+Test write to Chip 3 scratchpad
+Read
+0xE00A
+0xAA
+Test read from Chip 3 scratchpad
+Write
+0x6000
+0x18
+Enable Chip 3 SDO
+Write
+0x0000
+0x00
+Disable SDO pin on all chips
+Write
+0x2000
+0x18
+Enable Chip 1 SDO pin
+Write
+0x4000
+0x18
+Enable Chip 2 SDO pin
+Write
+0x6000
+0x18
+Enable Chip 3 SDO pin
+Write
+0x000A
+0xAA
+Test write to Chip 0 scratchpad
+Read
+0x000A
+0xAA
+Test read from Chip 0 scratchpad
+Write
+0x0000
+0x18
+Enable SDO pin on all chips
+
+
+--- Page 49/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 49 of 79
+SDO Bus Connections
+The SDO pin has no internal current limiting resistor. When there
+are multiple SDO pins sharing the same SPI bus and when the
+readback procedures outlined in Table 28 and Table 29 are not
+followed, there is a possibility of damage to one or more of the
+SDO pins. It is recommended to install a 50 Ω series current limiting
+resistor between the SDO pin and the MISO bus line as shown in
+Figure 106. The setup gives incorrect logic levels during readback
+if the procedures are not followed, but it can prevent damage from
+occurring by limiting the sourced current to 27 mA when four chips
+share the SPI bus (current reduces if fewer chips are on the bus).
+Figure 106. Recommended SDO Current Limiting Resistors
+
+
+--- Page 50/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 50 of 79
+SPI PROGRAMMING EXAMPLE
+The SPI programming example in Table 30 sets up the bias of the
+different subcircuits, as well as the gain and phase settings of all
+channels. The device stays in the receive mode until the TR input
+is raised high, and the device switches into transmit mode. All the
+external amplifier bias and switches also change state accordingly.
+Table 30. Register Programing to Set Up the ADAR1000
+Register
+Address
+Content
+(Hexadecimal)
+Description
+0x000
+BD
+Reset whole chip, use SDO line for readback, address auto incrementing in block write mode.
+0x401
+02
+Allow LDO adjustments from user settings.
+0x400
+55
+Adjust LDO regulators.
+0x046
+85
+Set PA_BIAS1 output to approximately −2.5 V in receive mode.
+0x047
+85
+Set PA_BIAS2 output to approximately −2.5 V in receive mode.
+0x048
+85
+Set PA_BIAS3 output to approximately −2.5 V in receive mode.
+0x049
+85
+Set PA_BIAS4 output to approximately −2.5 V in receive mode.
+0x04A
+68
+Set LNA_BIAS output to approximately −2 V while in transmit mode
+0x029
+39
+Set PA_BIAS1 output to approximately −1.1 V in transmit mode.
+0x02A
+39
+Set PA_BIAS2 output to approximately −1.1 V in transmit mode.
+0x02B
+39
+Set PA_BIAS3 output to approximately −1.1 V in transmit mode.
+0x02C
+39
+Set PA_BIAS4 output to approximately −1.1 V in transmit mode.
+0x02D
+00
+Set LNA_BIAS to approximately 0 V, while in receive mode.
+0x030
+1F
+Enable LNA_BIAS, select fixed output.
+0x038
+60
+Select SPI instead of internal RAM for channel settings.
+0x031
+1C
+Select TR input for transmit and receive switching control, enables switch outputs.
+0x02F
+7F
+Select all four transmit channel and enable transmit driver, vector modulator, and VGA.
+0x036
+16
+Set transmit VGA bias to 2, vector modulator bias to 6.
+0x037
+06
+Set transmit driver bias to 6.
+0x01C
+FF
+Set Channel 1 attenuator to 0 dB, VGA gain to maximum.
+0x020
+36
+Set Channel 1 vector modulator I input to positive, Magnitude 16.
+0x021
+35
+Set Channel 1 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x01D
+FF
+Set Channel 2 attenuator to 0 dB, VGA gain to maximum.
+0x022
+36
+Set Channel 2 vector modulator I input to positive, Magnitude 16.
+0x023
+35
+Set Channel 2 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x01E
+FF
+Set Channel 3 attenuator to 0 dB, VGA gain to maximum.
+0x024
+36
+Set Channel 3 vector modulator I input to positive, Magnitude 16.
+0x025
+35
+Set Channel 3 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x01F
+FF
+Set Channel 4 attenuator to 0 dB, VGA gain to maximum.
+0x026
+36
+Set Channel 4 vector modulator I input to positive, Magnitude 16.
+0x027
+35
+Set Channel 4 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x02E
+7F
+Select all four receive channel, enable receive LNA, vector modulator and VGA.
+0x034
+08
+Set receive LNA bias to 8.
+0x035
+16
+Set receive VGA bias to 2, vector modulator bias to 6.
+0x010
+FF
+Set Channel 1 attenuator to 0 dB, VGA gain to maximum.
+0x014
+36
+Set Channel 1 vector modulator I input to positive, Magnitude 16.
+0x015
+35
+Set Channel 1 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x011
+FF
+Set Channel 2 attenuator to 0 dB, VGA gain to maximum.
+0x016
+36
+Set Channel 2 vector modulator I input to positive, Magnitude 16.
+0x017
+35
+Set Channel 2 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x012
+FF
+Set Channel 3 attenuator to 0 dB; VGA gain to maximum.
+0x018
+36
+Set Channel 3 vector modulator I input to positive, Magnitude 16.
+0x019
+35
+Set Channel 3 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+0x013
+FF
+Set Channel 4 attenuator to 0 dB, VGA gain to maximum.
+
+
+--- Page 51/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 51 of 79
+Table 30. Register Programing to Set Up the ADAR1000
+Register
+Address
+Content
+(Hexadecimal)
+Description
+0x01A
+36
+Set Channel 4 vector modulator I input to positive, Magnitude 16.
+0x01B
+35
+Set Channel 4 vector modulator Q input to positive, Magnitude 15. These two together set phase to 45°.
+Table 31. ADAR1000 Memory Register Programming Example for Beam Position 0 and Bias Setting 1
+Register1
+Content
+Description
+0x038
+00
+Set beam ram bypass and bias ram bypass bits to load working registers from memory
+0x1000
+FF
+Set receiver VGA gain and attenuator values for Channel 1; VGA gain maximum, attenuator = 0 dB
+0x1001
+36
+Set receiver I vector and polarity values for Channel 1; positive polarity, Magnitude = 16
+0x1002
+35
+Set receiver Q vector and polarity values for Channel 1; positive polarity, Magnitude = 15
+0x1004
+FF
+Set receiver VGA gain and attenuator values for Channel 2; VGA gain maximum, attenuator = 0 dB
+0x1005
+36
+Set receiver I vector and polarity values for Channel 2; positive polarity, Magnitude = 16
+0x1006
+35
+Set receiver Q vector and polarity values for Channel 2; positive polarity, Magnitude = 15
+0x1008
+FF
+Set receiver VGA gain and attenuator values for Channel 3; VGA gain maximum, attenuator = 0 dB
+0x1009
+36
+Set receiver I vector and polarity values for Channel 3; positive polarity, Magnitude = 16
+0x100A
+35
+Set receiver Q vector and polarity values for Channel 3; positive polarity, Magnitude = 15
+0x100C
+FF
+Set receiver VGA gain and attenuator values for Channel 4; VGA gain maximum, attenuator = 0 dB
+0x100D
+36
+Set receiver I vector and polarity values for Channel 4; positive polarity, Magnitude = 16
+0x100E
+35
+Set receiver Q vector and polarity values for Channel 4; positive polarity, Magnitude = 15
+0x1790
+60
+Set receiver EXT_LNA_BIAS_OFF value for receiver Bias Setting 1; −1.8 V output
+0x1791
+28
+Set receiver EXT_LNA_BIAS_ON value for receiver Bias Setting 1; −0.8 V output
+0x1794
+16
+Set receiver vector modulator and VGA bias values for receiver; VGA = 2, vector modulator = 6
+0x1795
+08
+Set receiver LNA bias value for receiver; LNA = 8
+0x1800
+FF
+Set transmitter VGA gain and attenuator values for Channel 1
+0x1801
+36
+Set transmitter I vector and polarity values for Channel 1
+0x1802
+35
+Set transmitter Q vector and polarity values for Channel 1
+0x1804
+FF
+Set transmitter VGA gain and attenuator values for Channel 2
+0x1805
+36
+Set transmitter I vector and polarity values for Channel 2
+0x1806
+35
+Set transmitter Q vector and polarity values for Channel 2
+0x1808
+FF
+Set transmitter VGA gain and attenuator values for Channel 3
+0x1809
+36
+Set transmitter I vector and polarity values for Channel 3
+0x180A
+35
+Set transmitter Q vector and polarity values for Channel 3
+0x180C
+FF
+Set transmitter VGA gain and attenuator values for Channel 4
+0x180D
+36
+Set transmitter I vector and polarity values for Channel 4
+0x180E
+35
+Set transmitter Q vector and polarity values for Channel 4
+0x1F90
+60
+Set transmitter EXT_PA1_BIAS_OFF value for transmitter; −1.8 V output
+0x1F91
+60
+Set transmitter EXT_PA2_BIAS_OFF value for transmitter; −1.8 V output
+0x1F92
+60
+Set transmitter EXT_PA3_BIAS_OFF value for transmitter; −1.8 V output
+0x1F94
+28
+Set transmitter EXT_PA1_BIAS_ON value for transmitter; −0.8 V output
+0x1F95
+28
+Set transmitter EXT_PA2_BIAS_ON value for transmitter; −0.8 V output
+0x1F96
+28
+Set transmitter EXT_PA3_BIAS_ON value for transmitter; −0.8 V output
+0x1F98
+60
+Set transmitter EXT_PA4_BIAS_OFF value for transmitter; −1.8 V output
+0x1F99
+28
+Set transmitter EXT_PA4_BIAS_ON value for transmitter; −0.8 V output
+0x1F9C
+16
+Set transmitter vector modulator and VGA bias values for transmitter; VGA bias = 2, vector modulator = 6
+0x1F9D
+06
+Set transmitter driver bias value for transmitter; driver = 6
+0x39
+80
+Set all receiver channels to Beam Position 0 and set the fetch bit; the user can individually set the receiver channels using Register 0x03D
+through Register 0x040
+0x3A
+80
+Set all transmitter channels to Beam Position 0 and set the fetch bit; the user can individually set the transmitter channels using Register
+0x041 through Register 0x044
+
+
+--- Page 52/79 ---
+Data Sheet
+ADAR1000
+APPLICATIONS INFORMATION
+analog.com
+Rev. B | 52 of 79
+Table 31. ADAR1000 Memory Register Programming Example for Beam Position 0 and Bias Setting 1
+Register1
+Content
+Description
+0x51
+08
+Set receiver bias to Bias Setting 1 and set the fetch bit
+0x52
+08
+Set receiver bias to Bias Setting 1 and set the fetch bit
+1 Transmitter and receiver gain are set to maximum and the phase value is 45° for all channels.
+
+
+--- Page 53/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 53 of 79
+Table 32. Control Registers Summary
+Reg.
+(Hex)
+Name
+Bits
+Bit 7
+Bit 6
+Bit 5
+Bit 4
+Bit 3
+Bit 2
+Bit 1
+Bit 0
+Reset
+R/W
+000
+INTERFACE_
+CONFIG_A
+[7:0]
+SOFTRESET
+LSB_
+FIRST
+ADDR_
+ASCN
+SDOACTIVE
+SDOACTIVE
+_
+ADDR_
+ASCN_
+LSB_
+FIRST_
+SOFT
+RESET_
+0x00
+R/W
+001
+INTERFACE_
+CONFIG_B
+[7:0]
+SINGLE_
+INSTRUCTION
+CSB_
+STALL
+MASTER_
+SLAVE_RB
+SLOW_
+INTERFACE
+_
+CTRL
+RESERVED
+SOFT_RESET
+RESERVED
+0x00
+R/W
+003
+CHIP_TYPE
+[7:0]
+CHIP_TYPE
+0x00
+R
+004
+PRODUCT_ID_H
+[7:0]
+PRODUCT_ID[15:8]
+0x00
+R
+005
+PRODUCT_ID_L
+[7:0]
+PRODUCT_ID[7:0]
+0x00
+R
+00A
+SCRATCH_PAD
+[7:0]
+SCRATCHPAD
+0x00
+R/W
+00B
+SPI_REV
+[7:0]
+SPI_REV
+0x00
+R
+00C
+VENDOR_ID_H
+[7:0]
+VENDOR_ID[15:8]
+0x00
+R
+00D
+VENDOR_ID_L
+[7:0]
+VENDOR_ID[7:0]
+0x00
+R
+00F
+TRANSFER_REG
+[7:0]
+RESERVED
+MASTER_
+0x00
+R/W
+SLAVE_XFE
+R
+010
+CH1_RX_GAIN
+[7:0]
+CH1_ATTN_RX
+RX_VGA_CH1
+0x00
+R/W
+011
+CH2_RX_GAIN
+[7:0]
+CH2_ATTN_RX
+RX_VGA_CH2
+0x00
+R/W
+012
+CH3_RX_GAIN
+[7:0]
+CH3_ATTN_RX
+RX_VGA_CH3
+0x00
+R/W
+013
+CH4_RX_GAIN
+[7:0]
+CH4_ATTN_RX
+RX_VGA_CH4
+0x00
+R/W
+014
+CH1_RX_PHASE_
+I
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH1_GAIN_I
+0x00
+R/W
+CH1_POL_I
+015
+CH1_RX_PHASE_
+Q
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH1_GAIN_Q
+0x00
+R/W
+CH1_
+POL_Q
+016
+CH2_RX_PHASE_
+I
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH2_GAIN_I
+0x00
+R/W
+CH2_
+POL_I
+017
+CH2_RX_PHASE_
+Q
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH2_GAIN_Q
+0x00
+R/W
+CH2_
+POL_Q
+018
+CH3_RX_PHASE_
+I
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH3_GAIN_I
+0x00
+R/W
+CH3_
+POL_I
+019
+CH3_RX_PHASE_
+Q
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH3_GAIN_Q
+0x00
+R/W
+CH3_
+POL_Q
+01A
+CH4_RX_PHASE_
+I
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH4_GAIN_I
+0x00
+R/W
+CH4_
+POL_I
+01B
+CH4_RX_PHASE_
+Q
+[7:0]
+RESERVED
+RX_VM_
+RX_VM_CH4_GAIN_Q
+0x00
+R/W
+
+
+--- Page 54/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 54 of 79
+Table 32. Control Registers Summary
+Reg.
+(Hex)
+Name
+Bits
+Bit 7
+Bit 6
+Bit 5
+Bit 4
+Bit 3
+Bit 2
+Bit 1
+Bit 0
+Reset
+R/W
+CH4_
+POL_Q
+01C
+CH1_TX_GAIN
+[7:0]
+CH1_ATTN_TX
+TX_VGA_CH1
+0x00
+R/W
+01D
+CH2_TX_GAIN
+[7:0]
+CH2_ATTN_TX
+TX_VGA_CH2
+0x00
+R/W
+01E
+CH3_TX_GAIN
+[7:0]
+CH3_ATTN_TX
+TX_VGA_CH3
+0x00
+R/W
+01F
+CH4_TX_GAIN
+[7:0]
+CH4_ATTN_TX
+TX_VGA_CH4
+0x00
+R/W
+020
+CH1_TX_PHASE_
+I
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH1_GAIN_I
+0x00
+R/W
+CH1_POL_I
+021
+CH1_TX_PHASE_
+Q
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH1_GAIN_Q
+0x00
+R/W
+CH1_
+POL_Q
+022
+CH2_TX_PHASE_
+I
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH2_GAIN_I
+0x00
+R/W
+CH2_
+POL_I
+023
+CH2_TX_PHASE_
+Q
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH2_GAIN_Q
+0x00
+R/W
+CH2_
+POL_Q
+024
+CH3_TX_PHASE_
+I
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH3_GAIN_I
+0x00
+R/W
+CH3_
+POL_I
+025
+CH3_TX_PHASE_
+Q
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH3_GAIN_Q
+0x00
+R/W
+CH3_
+POL_Q
+026
+CH4_TX_PHASE_
+I
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH4_GAIN_I
+0x00
+R/W
+CH4_
+POL_I
+027
+CH4_TX_PHASE_
+Q
+[7:0]
+RESERVED
+TX_VM_
+TX_VM_CH4_GAIN_Q
+0x00
+R/W
+CH4_
+POL_Q
+028
+LD_WRK_REGS
+[7:0]
+RESERVED
+LDTX_
+LDRX_
+0x00
+W
+OVERRIDE
+OVERRIDE
+029
+CH1_PA_BIAS_O
+N
+[7:0]
+EXT_PA1_BIAS_ON
+0x00
+R/W
+02A
+CH2_PA_BIAS_O
+N
+[7:0]
+EXT_PA2_BIAS_ON
+0x00
+R/W
+02B
+CH3_PA_BIAS_O
+N
+[7:0]
+EXT_PA3_BIAS_ON
+0x00
+R/W
+02C
+CH4_PA_BIAS_O
+N
+[7:0]
+EXT_PA4_BIAS_ON
+0x00
+R/W
+02D
+LNA_BIAS_ON
+[7:0]
+EXT_LNA_BIAS_ON
+0x00
+R/W
+02E
+RX_ENABLES
+[7:0]
+RESERVED
+CH1_
+CH2_
+CH3_
+CH4_
+RX_
+RX_
+RX_VGA_EN
+0x00
+R/W
+
+
+--- Page 55/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 55 of 79
+Table 32. Control Registers Summary
+Reg.
+(Hex)
+Name
+Bits
+Bit 7
+Bit 6
+Bit 5
+Bit 4
+Bit 3
+Bit 2
+Bit 1
+Bit 0
+Reset
+R/W
+RX_EN
+RX_EN
+RX_EN
+RX_EN
+LNA_EN
+VM_EN
+02F
+TX_ENABLES
+[7:0]
+RESERVED
+CH1_
+CH2_
+CH3_
+CH4_
+TX_
+TX_
+TX_VGA_EN
+0x00
+R/W
+TX_EN
+TX_EN
+TX_EN
+TX_EN
+DRV_EN
+VM_EN
+030
+MISC_ENABLES
+[7:0]
+SW_DRV_
+BIAS_
+BIAS_EN
+LNA_
+CH1_
+CH2_
+CH3_
+CH4_
+0x00
+R/W
+TR_MODE_SEL
+CTRL
+BIAS_
+DET_EN
+DET_EN
+DET_EN
+DET_EN
+OUT_EN
+031
+SW_CTRL
+[7:0]
+SW_DRV_
+TX_EN
+RX_EN
+SW_DRV_
+SW_DRV_
+TR_
+TR_SPI
+POL
+0x00
+R/W
+TR_STATE
+EN_TR
+EN_POL
+SOURCE
+032
+ADC_CTRL
+[7:0]
+ADC_
+ADC_
+CLK_EN
+ST_CONV
+MUX_SEL
+ADC_EOC
+0x00
+R/W
+CLKFREQ_SEL
+EN
+033
+ADC_OUTPUT
+[7:0]
+ADC
+0x00
+R
+034
+BIAS_CURRENT_
+[7:0]
+RESERVED
+LNA_BIAS
+0x00
+R/W
+RX_LNA
+035
+BIAS_CURRENT_
+[7:0]
+RESERVED
+RX_VGA_BIAS
+RX_VM_BIAS
+0x00
+R/W
+RX
+036
+BIAS_CURRENT_
+[7:0]
+RESERVED
+TX_VGA_BIAS
+TX_VM_BIAS
+0x00
+R/W
+TX
+037
+BIAS_CURRENT_
+[7:0]
+RESERVED
+TX_DRV_BIAS
+0x00
+R/W
+TX_DRV
+038
+MEM_CTRL
+[7:0]
+SCAN_
+BEAM_
+BIAS_
+RESERVED
+TX_BEAM_
+RX_
+TX_CHX_
+RX_CHX_
+0x00
+R/W
+MODE_EN
+RAM_
+RAM_
+STEP_EN
+BEAM_
+RAM_
+RAM_
+BYPASS
+BYPASS
+STEP_
+BYPASS
+BYPASS
+EN
+039
+RX_CHX_MEM
+[7:0]
+RX_CHX_
+RX_CHX_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+03A
+TX_CHX_MEM
+[7:0]
+TX_CHX_
+TX_CHX_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+03D
+RX_CH1_MEM
+[7:0]
+RX_CH1_
+RX_CH1_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+03E
+RX_CH2_MEM
+[7:0]
+RX_CH2_RAM_
+RX_CH2_RAM_INDEX
+0x00
+R/W
+FETCH
+03F
+RX_CH3_MEM
+[7:0]
+RX_CH3_RAM_
+RX_CH3_RAM_INDEX
+0x00
+R/W
+FETCH
+040
+RX_CH4_MEM
+[7:0]
+RX_CH4_
+RX_CH4_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+041
+TX_CH1_MEM
+[7:0]
+TX_CH1_
+TX_CH1_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+042
+TX_CH2_MEM
+[7:0]
+TX_CH2_
+TX_CH2_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+043
+TX_CH3_MEM
+[7:0]
+TX_CH3_
+TX_CH3_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+044
+TX_CH4_MEM
+[7:0]
+TX_CH4_
+TX_CH4_RAM_INDEX
+0x00
+R/W
+RAM_FETCH
+045
+REV_ID
+[7:0]
+REV_ID
+0x00
+R
+046
+CH1_PA_BIAS_
+OFF
+[7:0]
+EXT_PA1_BIAS_OFF
+0x00
+R/W
+047
+CH2_PA_BIAS_
+[7:0]
+EXT_PA2_BIAS_OFF
+0x00
+R/W
+
+
+--- Page 56/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 56 of 79
+Table 32. Control Registers Summary
+Reg.
+(Hex)
+Name
+Bits
+Bit 7
+Bit 6
+Bit 5
+Bit 4
+Bit 3
+Bit 2
+Bit 1
+Bit 0
+Reset
+R/W
+OFF
+048
+CH3_PA_BIAS_
+OFF
+[7:0]
+EXT_PA3_BIAS_OFF
+0x00
+R/W
+049
+CH4_PA_BIAS_
+OFF
+[7:0]
+EXT_PA4_BIAS_OFF
+0x00
+R/W
+04A
+LNA_BIAS_OFF
+[7:0]
+EXT_LNA_BIAS_OFF
+0x00
+R/W
+04B
+TX_TO_RX_
+[7:0]
+TX_TO_RX_DELAY_1
+TX_TO_RX_DELAY_2
+0x00
+R/W
+DELAY_CTRL
+04C
+RX_TO_
+[7:0]
+RX_TO_TX_DELAY_1
+RX_TO_TX_DELAY_2
+0x00
+R/W
+TX_DELAY_CTRL
+04D
+TX_BEAM_
+[7:0]
+TX_BEAM_STEP_START
+0x00
+R/W
+STEP_START
+04E
+TX_BEAM_
+[7:0]
+TX_BEAM_STEP_STOP
+0x00
+R/W
+STEP_STOP
+04F
+RX_BEAM_
+[7:0]
+RX_BEAM_STEP_START
+0x00
+R/W
+STEP_START
+050
+RX_BEAM_
+[7:0]
+RX_BEAM_STEP_STOP
+0x00
+R/W
+STEP_STOP
+051
+RX_BIAS_RAM_
+CTL
+[7:0]
+RESERVED
+RX_BIAS_
+RX_BIAS_RAM_INDEX
+0x00
+R/W
+RAM_FETC
+H
+052
+TX_BIAS_RAM_
+CTL
+[7:0]
+RESERVED
+TX_BIAS_
+TX_BIAS_RAM_INDEX
+0x00
+R/W
+RAM_FETC
+H
+400
+LDO_TRIM_CTL_
+0
+[7:0]
+LDO_TRIM_REG_2P8V
+LDO_TRIM_REG_1P8V
+0x00
+R/W
+401
+LDO_TRIM_CTL_
+1
+[7:0]
+RESERVED
+LDO_TRIM_SEL
+0x00
+R/W
+
+
+--- Page 57/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 57 of 79
+REGISTER DESCRIPTIONS
+Address: 0x000, Reset: 0x00, Name: INTERFACE_CONFIG_A
+Register 0x00 has special functionality not applicable to any other register. This special functionality for soft reset is:
+►When issuing a soft reset to Chip 0, all chips on the SPI bus perform a soft reset.
+►When issuing a soft reset to any chip other than Chip 0, no chips on the SPI bus reset.
+There is not a way to soft reset an individual chip only. For the remaining bits in Register 0x00, the functionality is as follows:
+►When asserting LSB first, address ascension, or the SDO active bit on Chip 0, all chips on the SPI bus are set to LSB first mode, address
+ascension mode, or SDO enabled, respectively.
+►When asserting LSB first, Address ascension, or the SDO active bit on Chip x (x = 1, 2, or 3), only Chip x is set to LSB first mode, address
+ascension mode, or SDO enabled, respectively.
+Note that the data bits are a palindrome: the functions of the last four bits in this register are intentionally replicated from the first four bits in a
+reverse manner so that the bit pattern is the same, whether sent LSB first or MSB first.
+Table 33. Bit Descriptions for INTERFACE_CONFIG_A
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+SOFTRESET
+Soft Reset
+0x0
+R/W
+6
+LSB_FIRST
+LSB First
+0x0
+R/W
+5
+ADDR_ASCN
+Address Ascension
+0x0
+R/W
+4
+SDOACTIVE
+SDO Active
+0x0
+R/W
+3
+SDOACTIVE_
+SDO Active (duplicate)
+0x0
+R/W
+2
+ADDR_ASCN_
+Address Ascension (duplicate)
+0x0
+R/W
+1
+LSB_FIRST_
+LSB First (duplicate)
+0x0
+R/W
+0
+SOFTRESET_
+Soft Reset (duplicate)
+0x0
+R/W
+Address: 0x001, Reset: 0x00, Name: INTERFACE_CONFIG_B
+
+
+--- Page 58/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 58 of 79
+Table 34. Bit Descriptions for INTERFACE_CONFIG_B
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+SINGLE_INSTRUCTION
+Single Instruction
+0x0
+R/W
+6
+CSB_STALL
+CSB Stall
+0x0
+R/W
+5
+MASTER_SLAVE_RB
+Master Slave Readback
+0x0
+R/W
+4
+SLOW_INTERFACE_CTRL
+Slow Interface Control
+0x0
+R/W
+3
+RESERVED
+Reserved
+0x0
+R
+[2:1]
+SOFT_RESET
+Soft Reset
+0x0
+R/W
+0
+RESERVED
+Reserved
+0x0
+R
+Address: 0x003, Reset: 0x00, Name: CHIP_TYPE
+Table 35. Bit Descriptions for CHIP_TYPE
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+CHIP_TYPE
+Chip Type
+0x0
+R
+Address: 0x004, Reset: 0x00, Name: PRODUCT_ID_H
+Table 36. Bit Descriptions for PRODUCT_ID_H
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+PRODUCT_ID[15:8]
+Product ID[15:8]
+0x0
+R
+Address: 0x005, Reset: 0x00, Name: PRODUCT_ID_L
+Table 37. Bit Descriptions for PRODUCT_ID_L
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+PRODUCT_ID[7:0]
+Product ID[7:0]
+0x0
+R
+Address: 0x00A, Reset: 0x00, Name: SCRATCH_PAD
+
+
+--- Page 59/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 59 of 79
+Table 38. Bit Descriptions for SCRATCH_PAD
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+SCRATCHPAD
+Scratch Pad
+0x0
+R/W
+Address: 0x00B, Reset: 0x00, Name: SPI_REV
+Table 39. Bit Descriptions for SPI_REV
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+SPI_REV
+SPI Revision
+0x0
+R
+Address: 0x00C, Reset: 0x00, Name: VENDOR_ID_H
+Table 40. Bit Descriptions for VENDOR_ID_H
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+VENDOR_ID[15:8]
+Vendor ID[15:8]
+0x0
+R
+Address: 0x00D, Reset: 0x00, Name: VENDOR_ID_L
+Table 41. Bit Descriptions for VENDOR_ID_L
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+VENDOR_ID[7:0]
+Vendor ID[7:0]
+0x0
+R
+Address: 0x00F, Reset: 0x00, Name: TRANSFER_REG
+Table 42. Bit Descriptions for TRANSFER_REG
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:1]
+RESERVED
+Reserved
+0x0
+R
+0
+MASTER_SLAVE_XFER
+Master Slave Transfer
+0x0
+R/W
+Address: 0x010, Reset: 0x00, Name: CH1_RX_GAIN
+
+
+--- Page 60/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 60 of 79
+Table 43. Bit Descriptions for CH1_RX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH1_ATTN_RX
+Channel 1 Attenuator Setting for Receive Mode. Assert high for attenuator
+bypass.
+0x0
+R/W
+[6:0]
+RX_VGA_CH1
+Channel 1 Receive VGA Gain Control
+0x0
+R/W
+Address: 0x011, Reset: 0x00, Name: CH2_RX_GAIN
+Table 44. Bit Descriptions for CH2_RX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH2_ATTN_RX
+Channel 2 Attenuator Setting for Receive Mode. Assert high for attenuator
+bypass.
+0x0
+R/W
+[6:0]
+RX_VGA_CH2
+Channel 2 Receive VGA Gain Control
+0x0
+R/W
+Address: 0x012, Reset: 0x00, Name: CH3_RX_GAIN
+Table 45. Bit Descriptions for CH3_RX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH3_ATTN_RX
+Channel 3 Attenuator Setting for Receive Mode. Assert high for attenuator
+bypass.
+0x0
+R/W
+[6:0]
+RX_VGA_CH3
+Channel 3 Receive VGA Gain Control
+0x0
+R/W
+Address: 0x013, Reset: 0x00, Name: CH4_RX_GAIN
+Table 46. Bit Descriptions for CH4_RX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH4_ATTN_RX
+Channel 4 Attenuator Setting for Receive Mode. Assert high for attenuator
+bypass.
+0x0
+R/W
+[6:0]
+RX_VGA_CH4
+Channel 4 Receive VGA Gain Control
+0x0
+R/W
+
+
+--- Page 61/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 61 of 79
+Address: 0x014, Reset: 0x00, Name: CH1_RX_PHASE_I
+Table 47. Bit Descriptions for CH1_RX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH1_POL_I
+Channel 1 Receive Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH1_GAIN_I
+Channel 1 Receive Vector Modulator I Gain
+0x0
+R/W
+Address: 0x015, Reset: 0x00, Name: CH1_RX_PHASE_Q
+Table 48. Bit Descriptions for CH1_RX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH1_POL_Q
+Channel 1 Receive Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH1_GAIN_Q
+Channel 1 Receive Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x016, Reset: 0x00, Name: CH2_RX_PHASE_I
+Table 49. Bit Descriptions for CH2_RX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH2_POL_I
+Channel 2 Receive Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH2_GAIN_I
+Channel 2 Receive Vector Modulator I Gain
+0x0
+R/W
+Address: 0x017, Reset: 0x00, Name: CH2_RX_PHASE_Q
+
+
+--- Page 62/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 62 of 79
+Table 50. Bit Descriptions for CH2_RX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH2_POL_Q
+Channel 2 Receive Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH2_GAIN_Q
+Channel 2 Receive Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x018, Reset: 0x00, Name: CH3_RX_PHASE_I
+Table 51. Bit Descriptions for CH3_RX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved.
+0x0
+R
+5
+RX_VM_CH3_POL_I
+Channel 3 Receive Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH3_GAIN_I
+Channel 3 Receive Vector Modulator I Gain
+0x0
+R/W
+Address: 0x019, Reset: 0x00, Name: CH3_RX_PHASE_Q
+Table 52. Bit Descriptions for CH3_RX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH3_POL_Q
+Channel 3 Receive Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH3_GAIN_Q
+Channel 3 Receive Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x01A, Reset: 0x00, Name: CH4_RX_PHASE_I
+Table 53. Bit Descriptions for CH4_RX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH4_POL_I
+Channel 4 Receive Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH4_GAIN_I
+Channel 4 Receive Vector Modulator I Gain
+0x0
+R/W
+Address: 0x01B, Reset: 0x00, Name: CH4_RX_PHASE_Q
+
+
+--- Page 63/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 63 of 79
+Table 54. Bit Descriptions for CH4_RX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+RX_VM_CH4_POL_Q
+Channel 4 Receive Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+RX_VM_CH4_GAIN_Q
+Channel 4 Receive Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x01C, Reset: 0x00, Name: CH1_TX_GAIN
+Table 55. Bit Descriptions for CH1_TX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH1_ATTN_TX
+Channel 1 Attenuator Setting for Transmit Mode. Assert high for attenuator bypass.
+0x0
+R/W
+[6:0]
+TX_VGA_CH1
+Channel 1 Transmit VGA Gain Control
+0x0
+R/W
+Address: 0x01D, Reset: 0x00, Name: CH2_TX_GAIN
+Table 56. Bit Descriptions for CH2_TX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH2_ATTN_TX
+Channel 2 Attenuator Setting for Transmit Mode. Assert high for attenuator bypass.
+0x0
+R/W
+[6:0]
+TX_VGA_CH2
+Channel 2 Transmit VGA Gain Control
+0x0
+R/W
+Address: 0x01E, Reset: 0x00, Name: CH3_TX_GAIN
+Table 57. Bit Descriptions for CH3_TX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH3_ATTN_TX
+Channel 3 Attenuator Setting for Transmit Mode. Assert high for attenuator bypass.
+0x0
+R/W
+[6:0]
+TX_VGA_CH3
+Channel 3 Transmit VGA Gain Control
+0x0
+R/W
+Address: 0x01F, Reset: 0x00, Name: CH4_TX_GAIN
+
+
+--- Page 64/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 64 of 79
+Table 58. Bit Descriptions for CH4_TX_GAIN
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+CH4_ATTN_TX
+Channel 4 Attenuator Setting for Transmit Mode. Assert high for attenuator bypass.
+0x0
+R/W
+[6:0]
+TX_VGA_CH4
+Channel 4 Transmit VGA Gain Control
+0x0
+R/W
+Address: 0x020, Reset: 0x00, Name: CH1_TX_PHASE_I
+Table 59. Bit Descriptions for CH1_TX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH1_POL_I
+Channel 1 Transmit Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH1_GAIN_I
+Channel 1 Transmit Vector Modulator I Gain
+0x0
+R/W
+Address: 0x021, Reset: 0x00, Name: CH1_TX_PHASE_Q
+Table 60. Bit Descriptions for CH1_TX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH1_POL_Q
+Channel 1 Transmit Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH1_GAIN_Q
+Channel 1 Transmit Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x022, Reset: 0x00, Name: CH2_TX_PHASE_I
+
+
+--- Page 65/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 65 of 79
+Table 61. Bit Descriptions for CH2_TX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH2_POL_I
+Channel 2 Transmit Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH2_GAIN_I
+Channel 2 Transmit Vector Modulator I Gain
+0x0
+R/W
+Address: 0x023, Reset: 0x00, Name: CH2_TX_PHASE_Q
+Table 62. Bit Descriptions for CH2_TX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH2_POL_Q
+Channel 2 Transmit Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH2_GAIN_Q
+Channel 2 Transmit Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x024, Reset: 0x00, Name: CH3_TX_PHASE_I
+Table 63. Bit Descriptions for CH3_TX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH3_POL_I
+Channel 3 Transmit Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH3_GAIN_I
+Channel 3 Transmit Vector Modulator I Gain
+0x0
+R/W
+Address: 0x025, Reset: 0x00, Name: CH3_TX_PHASE_Q
+Table 64. Bit Descriptions for CH3_TX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH3_POL_Q
+Channel 3 Transmit Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH3_GAIN_Q
+Channel 3 Transmit Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x026, Reset: 0x00, Name: CH4_TX_PHASE_I
+
+
+--- Page 66/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 66 of 79
+Table 65. Bit Descriptions for CH4_TX_PHASE_I
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH4_POL_I
+Channel 4 Transmit Vector Modulator I Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH4_GAIN_I
+Channel 4 Transmit Vector Modulator I Gain
+0x0
+R/W
+Address: 0x027, Reset: 0x00, Name: CH4_TX_PHASE_Q
+Table 66. Bit Descriptions for CH4_TX_PHASE_Q
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:6]
+RESERVED
+Reserved
+0x0
+R
+5
+TX_VM_CH4_POL_Q
+Channel 4 Transmit Vector Modulator Q Polarity
+0x0
+R/W
+[4:0]
+TX_VM_CH4_GAIN_Q
+Channel 4 Transmit Vector Modulator Q Gain
+0x0
+R/W
+Address: 0x028, Reset: 0x00, Name: LD_WRK_REGS
+Table 67. Bit Descriptions for LD_WRK_REGS
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:2]
+RESERVED
+Reserved
+0x0
+R
+1
+LDTX_OVERRIDE
+Loads Transmit Working Registers from SPI. Assert high to update transmit gain and
+phase settings. Also can be used when advancing transmit beam position.
+0x0
+W
+0
+LDRX_OVERRIDE
+Loads Receive Working Registers from SPI. Assert high to update receive gain and
+phase settings. Also can be used when advancing receive beam position.
+0x0
+W
+Address: 0x029, Reset: 0x00, Name: CH1_PA_BIAS_ON
+
+
+--- Page 67/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 67 of 79
+Table 68. Bit Descriptions for CH1_PA_BIAS_ON
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA1_BIAS_ON
+External Bias for External PA 1
+0x0
+R/W
+Address: 0x02A, Reset: 0x00, Name: CH2_PA_BIAS_ON
+Table 69. Bit Descriptions for CH2_PA_BIAS_ON
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA2_BIAS_ON
+External Bias for External PA 2
+0x0
+R/W
+Address: 0x02B, Reset: 0x00, Name: CH3_PA_BIAS_ON
+Table 70. Bit Descriptions for CH3_PA_BIAS_ON
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA3_BIAS_ON
+External Bias for External PA 3
+0x0
+R/W
+Address: 0x02C, Reset: 0x00, Name: CH4_PA_BIAS_ON
+Table 71. Bit Descriptions for CH4_PA_BIAS_ON
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA4_BIAS_ON
+External Bias for External PA 4
+0x0
+R/W
+Address: 0x02D, Reset: 0x00, Name: LNA_BIAS_ON
+Table 72. Bit Descriptions for LNA_BIAS_ON
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_LNA_BIAS_ON
+External Bias for External LNAs
+0x0
+R/W
+Address: 0x02E, Reset: 0x00, Name: RX_ENABLES
+
+
+--- Page 68/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 68 of 79
+Table 73. Bit Descriptions for RX_ENABLES
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RESERVED
+Reserved
+0x0
+R
+6
+CH1_RX_EN
+Enables Receive Channel 1 Subcircuits
+0x0
+R/W
+5
+CH2_RX_EN
+Enables Receive Channel 2 Subcircuits
+0x0
+R/W
+4
+CH3_RX_EN
+Enables Receive Channel 3 Subcircuits
+0x0
+R/W
+3
+CH4_RX_EN
+Enables Receive Channel 4 Subcircuits
+0x0
+R/W
+2
+RX_LNA_EN
+Enables the Receive Channel LNAs
+0x0
+R/W
+1
+RX_VM_EN
+Enables the Receive Channel Vector Modulators
+0x0
+R/W
+0
+RX_VGA_EN
+Enables the Receive Channel VGAs
+0x0
+R/W
+Address: 0x02F, Reset: 0x00, Name: TX_ENABLES
+Table 74. Bit Descriptions for TX_ENABLES
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RESERVED
+Reserved
+0x0
+R
+6
+CH1_TX_EN
+Enables Transmit Channel 1 Subcircuits
+0x0
+R/W
+5
+CH2_TX_EN
+Enables Transmit Channel 2 Subcircuits
+0x0
+R/W
+4
+CH3_TX_EN
+Enables Transmit Channel 3 Subcircuits
+0x0
+R/W
+3
+CH4_TX_EN
+Enables Transmit Channel 4 Subcircuits
+0x0
+R/W
+2
+TX_DRV_EN
+Enables the Transmit Channel Drivers
+0x0
+R/W
+1
+TX_VM_EN
+Enables the Transmit Channel Vector Modulators
+0x0
+R/W
+0
+TX_VGA_EN
+Enables the Transmit Channel VGAs
+0x0
+R/W
+Address: 0x030, Reset: 0x00, Name: MISC_ENABLES
+
+
+--- Page 69/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 69 of 79
+Table 75. Bit Descriptions for MISC_ENABLES
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+SW_DRV_TR_MODE_SEL
+Transmit/Receive Output Driver Select. If 0, TR_SW_POS is enabled, and if 1,
+TR_SW_NEG is enabled.
+0x0
+R/W
+6
+BIAS_CTRL
+External Amplifier Bias Control. If 0, DACs assume the on register values. If 1, DACs vary
+with device mode (transmit and receive).
+0x0
+R/W
+5
+BIAS_EN
+Enables PA and LNA Bias DACs. 0 = enabled.
+0x0
+R/W
+4
+LNA_BIAS_OUT_EN
+Enables Output of LNA Bias DAC. 0 = open and 1 = bias connected.
+0x0
+R/W
+3
+CH1_DET_EN
+Enables Channel 1 Power Detector.
+0x0
+R/W
+2
+CH2_DET_EN
+Enables Channel 2 Power Detector.
+0x0
+R/W
+1
+CH3_DET_EN
+Enables Channel 3 Power Detector.
+0x0
+R/W
+0
+CH4_DET_EN
+Enables Channel 4 Power Detector.
+0x0
+R/W
+Address: 0x031, Reset: 0x00, Name: SW_CTRL
+Table 76. Bit Descriptions for SW_CTRL
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+SW_DRV_TR_STATE
+Controls Polarity of Transmit/Receive Switch Driver Output. If 0, the driver outputs 0 V in
+receive mode.
+0x0
+R/W
+6
+TX_EN
+Enables Transmit Channel Subcircuits when Under SPI Control. 1 = enabled.
+0x0
+R/W
+5
+RX_EN
+Enables Receive Channel Subcircuits when Under SPI Control. 1 = enabled.
+0x0
+R/W
+
+
+--- Page 70/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 70 of 79
+Table 76. Bit Descriptions for SW_CTRL
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+4
+SW_DRV_EN_TR
+Enables Switch Driver for External Transmit/Receive Switch. 1 = enabled.
+0x0
+R/W
+3
+SW_DRV_EN_POL
+Enables Switch Driver for External Polarization Switch. 1 = enabled.
+0x0
+R/W
+2
+TR_SOURCE
+Source for Transmit/Receive Control. 0 = TR_SPI, 1 = TR input.
+0x0
+R/W
+1
+TR_SPI
+Transmit or Receive mode while in SPI Control. 0 = receive and 1 = transmit.
+0x0
+R/W
+0
+POL
+Control for External Polarity Switch Drivers. 0 = outputs 0 V, and 1 = outputs −5 V, if switch is
+enabled.
+0x0
+R/W
+Address: 0x032, Reset: 0x00, Name: ADC_CTRL
+Table 77. Bit Descriptions for ADC_CTRL
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+ADC_CLKFREQ_SEL
+ADC Clock Frequency Selection. 0 = 2 MHz, 1 = 250 kHz
+0x0
+R/W
+6
+ADC_EN
+Turns on ADC and Resets State Machine. 1 = enabled
+0x0
+R/W
+5
+CLK_EN
+Turns on Clock Oscillator. 1 = enabled
+0x0
+R/W
+4
+ST_CONV
+Active High Triggers Conversion Cycle. Self-clearing
+0x0
+R/WC
+[3:1]
+MUX_SEL
+ADC Input Signal Select
+0x0
+R/W
+0b000
+Temperature Sensor
+0b001
+Detector 1
+0b010
+Detector 2
+0b011
+Detector 3
+0b100
+Detector 4
+0
+ADC_EOC
+ADC End of Conversion Signal. Active high; low during conversion.
+0x0
+R
+Address: 0x033, Reset: 0x00, Name: ADC_OUTPUT
+Table 78. Bit Descriptions for ADC_OUTPUT
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+ADC
+ADC Output Word
+0x0
+R
+Address: 0x034, Reset: 0x00, Name: BIAS_CURRENT_RX_LNA
+
+
+--- Page 71/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 71 of 79
+Table 79. Bit Descriptions for BIAS_CURRENT_RX_LNA
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:4]
+RESERVED
+Reserved
+0x0
+R
+[3:0]
+LNA_BIAS
+LNA Bias Current Setting
+0x0
+R/W
+Address: 0x035, Reset: 0x00, Name: BIAS_CURRENT_RX
+Table 80. Bit Descriptions for BIAS_CURRENT_RX
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RESERVED
+Reserved
+0x0
+R
+[6:3]
+RX_VGA_BIAS
+Receive Channel VGA Bias Current Setting
+0x0
+R/W
+[2:0]
+RX_VM_BIAS
+Receive Channel Vector Modulator Bias Current Setting
+0x0
+R/W
+Address: 0x036, Reset: 0x00, Name: BIAS_CURRENT_TX
+Table 81. Bit Descriptions for BIAS_CURRENT_TX
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RESERVED
+Reserved
+0x0
+R
+[6:3]
+TX_VGA_BIAS
+Transmit Channel VGA Bias Current Setting
+0x0
+R/W
+[2:0]
+TX_VM_BIAS
+Transmit Channel Vector Modulator Bias Current Setting
+0x0
+R/W
+Address: 0x037, Reset: 0x00, Name: BIAS_CURRENT_TX_DRV
+Table 82. Bit Descriptions for BIAS_CURRENT_TX_DRV
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:3]
+RESERVED
+Reserved
+0x0
+R
+[2:0]
+TX_DRV_BIAS
+Transmit Driver Bias Current Setting
+0x0
+R/W
+Address: 0x038, Reset: 0x00, Name: MEM_CTRL
+
+
+--- Page 72/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 72 of 79
+Table 83. Bit Descriptions for MEM_CTRL
+Bit
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+SCAN_MODE_EN
+Scan Mode Enable. SPI test mode enable. For Analog Devices, Inc., internal use
+only.
+0x0
+R/W
+6
+BEAM_RAM_BYPASS
+Bypass RAM and Load Beam Position Settings from SPI. 0 = Load Beam
+Positions from RAM, 1 = Load beam position from registers
+0x0
+R/W
+5
+BIAS_RAM_BYPASS
+Bypass RAM and Load Bias Position Settings from SPI. 0 = Load Bias Positions
+from RAM, 1 = Load bias position from registers
+0x0
+R/W
+4
+RESERVED
+Reserved.
+0x0
+R
+3
+TX_BEAM_STEP_EN
+Sequentially Step Through Stored Transmit Beam Positions.
+0x0
+R/W
+2
+RX_BEAM_STEP_EN
+Sequentially Step Through Stored Receive Beam Positions.
+0x0
+R/W
+1
+TX_CHX_RAM_BYPASS
+Assert high to load different beam position indices for each transmit channel and
+use Registers 0x41 to 0x44. Else keep low to load the same beam position for all
+transmit channels and use Register 0x3A. .
+0x0
+R/W
+0
+RX_CHX_RAM_BYPASS
+Assert high to load different beam position indices for each receive channel and
+use Registers 0x3D to 0x40. Else keep low to load the same beam position for all
+receive channels and use Register 0x39.
+0x0
+R/W
+Address: 0x039, Reset: 0x00, Name: RX_CHX_MEM
+Table 84. Bit Descriptions for RX_CHX_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RX_CHX_RAM_FETCH
+Get Receive Channel Beam Settings from RAM
+0x0
+R/W
+[6:0]
+RX_CHX_RAM_INDEX
+RAM Index for Receive Channels
+0x0
+R/W
+Address: 0x03A, Reset: 0x00, Name: TX_CHX_MEM
+
+
+--- Page 73/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 73 of 79
+Table 85. Bit Descriptions for TX_CHX_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+TX_CHX_RAM_FETCH
+Get Transmit Channel Beam Settings from RAM
+0x0
+R/W
+[6:0]
+TX_CHX_RAM_INDEX
+RAM Index for Transmit Channels
+0x0
+R/W
+Address: 0x03D, Reset: 0x00, Name: RX_CH1_MEM
+Table 86. Bit Descriptions for RX_CH1_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RX_CH1_RAM_FETCH
+Get Receive Channel 1 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+RX_CH1_RAM_INDEX
+RAM Index for Receive Channel 1
+0x0
+R/W
+Address: 0x03E, Reset: 0x00, Name: RX_CH2_MEM
+Table 87. Bit Descriptions for RX_CH2_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RX_CH2_RAM_FETCH
+Get Receive Channel 2 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+RX_CH2_RAM_INDEX
+RAM Index for Receive Channel 2
+0x0
+R/W
+Address: 0x03F, Reset: 0x00, Name: RX_CH3_MEM
+Table 88. Bit Descriptions for RX_CH3_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RX_CH3_RAM_FETCH
+Get Receive Channel 3 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+RX_CH3_RAM_INDEX
+RAM Index for Receive Channel 3
+0x0
+R/W
+Address: 0x040, Reset: 0x00, Name: RX_CH4_MEM
+
+
+--- Page 74/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 74 of 79
+Table 89. Bit Descriptions for RX_CH4_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+RX_CH4_RAM_FETCH
+Get Receive Channel 4 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+RX_CH4_RAM_INDEX
+RAM Index for Receive Channel 4
+0x0
+R/W
+Address: 0x041, Reset: 0x00, Name: TX_CH1_MEM
+Table 90. Bit Descriptions for TX_CH1_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+TX_CH1_RAM_FETCH
+Get Transmit Channel 1 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+TX_CH1_RAM_INDEX
+RAM Index for Transmit Channel 1
+0x0
+R/W
+Address: 0x042, Reset: 0x00, Name: TX_CH2_MEM
+Table 91. Bit Descriptions for TX_CH2_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+TX_CH2_RAM_FETCH
+Get Transmit Channel 2 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+TX_CH2_RAM_INDEX
+RAM Index for Transmit Channel 2
+0x0
+R/W
+Address: 0x043, Reset: 0x00, Name: TX_CH3_MEM
+Table 92. Bit Descriptions for TX_CH3_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+TX_CH3_RAM_FETCH
+Get Transmit Channel 3 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+TX_CH3_RAM_INDEX
+RAM Index for Transmit Channel 3
+0x0
+R/W
+Address: 0x044, Reset: 0x00, Name: TX_CH4_MEM
+
+
+--- Page 75/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 75 of 79
+Table 93. Bit Descriptions for TX_CH4_MEM
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+7
+TX_CH4_RAM_FETCH
+Get Transmit Channel 4 Beam Settings from RAM
+0x0
+R/W
+[6:0]
+TX_CH4_RAM_INDEX
+RAM Index for Transmit Channel 4
+0x0
+R/W
+Address: 0x045, Reset: 0x00, Name: REV_ID
+Table 94. Bit Descriptions for REV_ID
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+REV_ID
+Chip Revision ID
+0x0
+R
+Address: 0x046, Reset: 0x00, Name: CH1_PA_BIAS_OFF
+Table 95. Bit Descriptions for CH1_PA_BIAS_OFF
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA1_BIAS_OFF
+External Bias for External PA 1
+0x0
+R/W
+Address: 0x047, Reset: 0x00, Name: CH2_PA_BIAS_OFF
+Table 96. Bit Descriptions for CH2_PA_BIAS_OFF
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA2_BIAS_OFF
+External Bias for External PA 2
+0x0
+R/W
+Address: 0x048, Reset: 0x00, Name: CH3_PA_BIAS_OFF
+Table 97. Bit Descriptions for CH3_PA_BIAS_OFF
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA3_BIAS_OFF
+External Bias for External PA 3
+0x0
+R/W
+Address: 0x049, Reset: 0x00, Name: CH4_PA_BIAS_OFF
+
+
+--- Page 76/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 76 of 79
+Table 98. Bit Descriptions for CH4_PA_BIAS_OFF
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_PA4_BIAS_OFF
+External Bias for External PA 4
+0x0
+R/W
+Address: 0x04A, Reset: 0x00, Name: LNA_BIAS_OFF
+Table 99. Bit Descriptions for LNA_BIAS_OFF
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+EXT_LNA_BIAS_OFF
+External Bias for External LNAs
+0x0
+R/W
+Address: 0x04B, Reset: 0x00, Name: TX_TO_RX_DELAY_CTRL
+Table 100. Bit Descriptions for TX_TO_RX_DELAY_CTRL
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:4]
+TX_TO_RX_DELAY_1
+PA Bias off to TR Switch Delay
+0x0
+R/W
+[3:0]
+TX_TO_RX_DELAY_2
+TR Switch to LNA Bias on Delay
+0x0
+R/W
+Address: 0x04C, Reset: 0x00, Name: RX_TO_TX_DELAY_CTRL
+Table 101. Bit Descriptions for RX_TO_TX_DELAY_CTRL
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:4]
+RX_TO_TX_DELAY_1
+LNA Bias off to TR Switch Delay
+0x0
+R/W
+[3:0]
+RX_TO_TX_DELAY_2
+TR Switch to PA Bias on Delay
+0x0
+R/W
+Address: 0x04D, Reset: 0x00, Name: TX_BEAM_STEP_START
+
+
+--- Page 77/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 77 of 79
+Table 102. Bit Descriptions for TX_BEAM_STEP_START
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+TX_BEAM_STEP_START
+Start Memory Address for Transmit Channel Beam Stepping
+0x0
+R/W
+Address: 0x04E, Reset: 0x00, Name: TX_BEAM_STEP_STOP
+Table 103. Bit Descriptions for TX_BEAM_STEP_STOP
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+TX_BEAM_STEP_STOP
+Stop Memory Address for Transmit Channel Beam Stepping
+0x0
+R/W
+Address: 0x04F, Reset: 0x00, Name: RX_BEAM_STEP_START
+Table 104. Bit Descriptions for RX_BEAM_STEP_START
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+RX_BEAM_STEP_START
+Start Memory Address for Receive Channel Beam Stepping
+0x0
+R/W
+Address: 0x050, Reset: 0x00, Name: RX_BEAM_STEP_STOP
+Table 105. Bit Descriptions for RX_BEAM_STEP_STOP
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:0]
+RX_BEAM_STEP_STOP
+Stop Memory Address for Receive Channel Beam Stepping
+0x0
+R/W
+Address: 0x051, Reset: 0x00, Name: RX_BIAS_RAM_CTL
+Table 106. Bit Descriptions for RX_BIAS_RAM_CTL
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:4]
+RESERVED
+Reserved
+0x0
+R
+3
+RX_BIAS_RAM_FETCH
+Get Receive Beam Settings from RAM
+0x0
+R/W
+
+
+--- Page 78/79 ---
+Data Sheet
+ADAR1000
+REGISTER MAP
+analog.com
+Rev. B | 78 of 79
+Table 106. Bit Descriptions for RX_BIAS_RAM_CTL
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[2:0]
+RX_BIAS_RAM_INDEX
+RAM Index for Receive Channels
+0x0
+R/W
+Address: 0x052, Reset: 0x00, Name: TX_BIAS_RAM_CTL
+Table 107. Bit Descriptions for TX_BIAS_RAM_CTL
+Bit(s)
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:4]
+RESERVED
+Reserved
+0x0
+R
+3
+TX_BIAS_RAM_FETCH
+Get Transmit Channel Beam Settings from RAM
+0x0
+R/W
+[2:0]
+TX_BIAS_RAM_INDEX
+RAM Index for Transmit Channels
+0x0
+R/W
+Address: 0x400, Reset: 0x00, Name: LDO_TRIM_CTL_0
+Table 108. Bit Descriptions for LDO_TRIM_CTL_0
+Bits
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:4]
+LDO_TRIM_REG_2P8V
+Trim Values for Adjusting 2.8 V LDO Outputs, Slope =
+0x0
+R/W
+15 mV/LSB
+[3:0]
+LDO_TRIM_REG_1P8V
+Trim Values for Adjusting 1.8 V LDO Outputs, Slope =
+0x0
+R/W
+10 mV/LSB
+Address: 0x401, Reset: 0x00, Name: LDO_TRIM_CTL_1
+Table 109. Bit Descriptions for LDO_TRIM_CTL_1
+Bits
+Bit Name
+Settings
+Description
+Reset
+Access
+[7:2]
+RESERVED
+Reserved.
+0x0
+R
+[1:0]
+LDO_TRIM_SEL
+Set value to 2 (10 binary) to enable user adjustments for LDO outputs. Other combinations not
+recommended.
+0x0
+R/W
+
+
+--- Page 79/79 ---
+Data Sheet
+ADAR1000
+OUTLINE DIMENSIONS
+©2018-2022 Analog Devices, Inc. All rights reserved. Trademarks and
+registered trademarks are the property of their respective owners.
+One Analog Way, Wilmington, MA 01887-2356, U.S.A.
+Rev. B | 79 of 79
+Figure 107. 88-Terminal Land Grid Array [LGA]
+(CC-88-1)
+Dimensions shown in millimeters
+Updated: February 16, 2022
+ORDERING GUIDE
+Model1
+Temperature Range
+Package Description
+Packing Quantity
+Package
+Option
+ADAR1000ACCZN
+-40°C to +85°C
+88-Lead LGA (7mm x 7mm)
+CC-88-1
+ADAR1000ACCZN-R7
+-40°C to +85°C
+88-Lead LGA (7mm x 7mm)
+Reel, 500
+CC-88-1
+1 Z = RoHS Compliant Part.
+EVALUATION BOARDS
+Model1
+Description
+ADAR1000-EVALZ
+Evaluation Board
+1 Z = RoHS Compliant Part.
+
+
