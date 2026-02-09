@@ -33,6 +33,37 @@ Data flows through a clean dependency chain with no circular imports:
 
 All shared state lives in a single mutable `RadarConfig` object — no global variables.
 
+## GUI Controls
+
+The right panel has a parameter tree with live-adjustable controls:
+
+| Control | Range | Default | Effect |
+|---|---|---|---|
+| **Chirps** | 64 / 128 / 256 | 64 | Number of chirps per burst. More chirps = better velocity resolution (0.47 → 0.23 → 0.12 m/s) and +3/+6 dB Doppler integration gain, but slower update rate. Reconfigures TDD, buffer size, and tracker on change. |
+| **CFAR Bias (dB)** | 5–30 | 20.0 | Detection threshold above estimated noise floor. Higher = fewer false alarms but misses weaker targets. Lower = more sensitive but noisier. |
+| **Min Cluster** | 1–50 | 10 | Minimum number of connected CFAR cells to count as a detection. Filters out single-pixel noise spikes. Increase if seeing too many ghost detections. |
+| **Min Range (m)** | 0–10 | 1.0 | Ignore detections closer than this. Filters TX leakage ghosts that appear at near-zero range. Increase if seeing persistent false targets at short range. |
+| **Display Range (dB)** | 5–60 | 30 | Dynamic range of the heatmap colorscale. Maps 0 dB (at CFAR threshold) to full brightness. Lower values = more contrast on weak targets. Higher = see stronger returns without saturation. |
+| **Persist** | on/off | on | Accumulate detection and track history across frames. When on: past detections show as faded red dots, stale tracks as dim open circles. When off: only current frame is displayed. |
+
+**Keyboard shortcuts:** **P** = toggle persist, **R** = auto-range (reset zoom)
+
+### Info Panel
+
+The left sidebar shows real-time status in monospace columns:
+
+- **STATUS** — frame count, FPS, MTI mode, CFAR cell/cluster counts, detection and track totals
+- **DETECTIONS** — current-frame detections marked with `▸`, historical (persist) unmarked. Columns: Range, Velocity, Azimuth, Power
+- **TRACKS** — confirmed Kalman tracks. Active tracks marked `●`, stale tracks `○`. Columns: ID, Range, Velocity, Azimuth, Age (seconds since first detection)
+
+### Map Display
+
+- **Heatmap**: threshold-relative range-Doppler map (inferno colormap). Black = at or below CFAR noise floor, bright = signal above threshold
+- **Red stars**: current-frame CFAR detections
+- **Cyan circles**: active confirmed tracks (filled = active `●`, open = stale `○`)
+- **Cyan lines**: track trajectory trails (smoothed by Kalman filter)
+- **Faded red dots**: historical detection positions (persist mode)
+
 ## What's Implemented
 
 ### Signal Processing
