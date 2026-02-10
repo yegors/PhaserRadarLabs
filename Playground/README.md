@@ -11,12 +11,24 @@ cd Playground
 python start_radar.py
 ```
 
-Keyboard shortcuts: **P** = toggle persist, **R** = reset view, **Ctrl+C** = quit.
+Keyboard shortcuts: **P** = toggle persist, **H** = toggle heatmap, **R** = reset view, **Ctrl+C** = quit.
+
+### Calibration
+
+Run the per-element calibration before first use (or when the array's environment changes significantly). This measures and compensates for ADAR1000 gain/phase manufacturing variation:
+
+```bash
+cd Playground
+python calibrate.py
+```
+
+Point the array at open space or a flat wall >2m away. The script runs three calibration stages (channel, gain, phase), saves `.pkl` files, and prints a summary. Restart `start_radar.py` afterward to use the new calibration.
 
 ## Architecture
 
 ```
-start_radar.py          Entry point (~20 lines)
+start_radar.py          Entry point (~260 lines, heavily commented)
+calibrate.py            Per-element gain/phase calibration tool
 lib/
   config.py             RadarConfig — all parameters + derived timing/axes
   hardware.py           ADI device init, burst capture, chirp reconfig, cleanup
@@ -39,30 +51,35 @@ The right panel has a parameter tree with live-adjustable controls:
 
 | Control | Range | Default | Effect |
 |---|---|---|---|
-| **Chirps** | 64 / 128 / 256 | 64 | Number of chirps per burst. More chirps = better velocity resolution (0.47 → 0.23 → 0.12 m/s) and +3/+6 dB Doppler integration gain, but slower update rate. Reconfigures TDD, buffer size, and tracker on change. |
-| **CFAR Bias (dB)** | 5–30 | 20.0 | Detection threshold above estimated noise floor. Higher = fewer false alarms but misses weaker targets. Lower = more sensitive but noisier. |
-| **Min Cluster** | 1–50 | 10 | Minimum number of connected CFAR cells to count as a detection. Filters out single-pixel noise spikes. Increase if seeing too many ghost detections. |
-| **Min Range (m)** | 0–10 | 1.0 | Ignore detections closer than this. Filters TX leakage ghosts that appear at near-zero range. Increase if seeing persistent false targets at short range. |
-| **Display Range (dB)** | 5–60 | 30 | Dynamic range of the heatmap colorscale. Maps 0 dB (at CFAR threshold) to full brightness. Lower values = more contrast on weak targets. Higher = see stronger returns without saturation. |
-| **Persist** | on/off | on | Accumulate detection and track history across frames. When on: past detections show as faded red dots, stale tracks as dim open circles. When off: only current frame is displayed. |
+| **Range (m)** | 5–50 | 20 | Maximum displayed/processed range. |
+| **Rx Gain (dB)** | 0–70 | 60 | Receiver gain. Higher = more sensitive but risk of ADC saturation. |
+| **Chirps** | 64 / 128 / 256 | 64 | Chirps per burst. More = better velocity resolution (0.47 -> 0.23 -> 0.12 m/s) and +3/+6 dB Doppler integration gain, but slower update rate. Reconfigures TDD, buffer, and tracker on change. |
+| **CFAR Bias (dB)** | 5–30 | 20 | Detection threshold above estimated noise floor. Higher = fewer false alarms. Lower = more sensitive. |
+| **Min Cluster** | 1–50 | 7 | Minimum connected CFAR cells to count as a detection. Filters single-pixel noise. |
+| **Min Range (m)** | 0–10 | 1.0 | Ignore detections and zero heatmap below this range. Suppresses TX leakage. |
+| **Persist** | on/off | on | Accumulate detection/track history. Past detections age-colored, trails persist. |
+| **Heatmap** | on/off | on | Show/hide the range-Doppler intensity image. Detection markers still visible when off. |
+| **Display Range (dB)** | 5–60 | 30 | Dynamic range of heatmap colorscale. Lower = more contrast on weak targets. |
 
-**Keyboard shortcuts:** **P** = toggle persist, **R** = auto-range (reset zoom)
+**Keyboard shortcuts:** **P** = toggle persist, **H** = toggle heatmap, **R** = auto-range (reset zoom)
 
 ### Info Panel
 
-The left sidebar shows real-time status in monospace columns:
+The right sidebar shows real-time status in monospace columns:
 
-- **STATUS** — frame count, FPS, MTI mode, CFAR cell/cluster counts, detection and track totals
-- **DETECTIONS** — current-frame detections marked with `▸`, historical (persist) unmarked. Columns: Range, Velocity, Azimuth, Power
-- **TRACKS** — confirmed Kalman tracks. Active tracks marked `●`, stale tracks `○`. Columns: ID, Range, Velocity, Azimuth, Age (seconds since first detection)
+- **STATUS** — frame count, FPS, noise floor, MTI mode, chirps, range/velocity resolution
+- **PIPELINE** — CFAR cell/cluster counts, detection and track totals, peak power
+- **DETECTIONS** — numbered D1, D2, ... with columns: Range, Velocity, Power, Azimuth, Age. Current-frame detections marked with `>`, historical (persist) unmarked.
+- **TRACKS** — confirmed Kalman tracks. Active marked `*`, stale `o`. Columns: ID, Range, Velocity, Azimuth, Duration, Age.
 
 ### Map Display
 
-- **Heatmap**: threshold-relative range-Doppler map (inferno colormap). Black = at or below CFAR noise floor, bright = signal above threshold
-- **Red stars**: current-frame CFAR detections
-- **Cyan circles**: active confirmed tracks (filled = active `●`, open = stale `○`)
-- **Cyan lines**: track trajectory trails (smoothed by Kalman filter)
-- **Faded red dots**: historical detection positions (persist mode)
+- **Heatmap**: threshold-relative range-Doppler map (inferno colormap). Black = at or below CFAR threshold, bright = signal above threshold. Bins below `min_range` are zeroed out.
+- **Red stars + labels**: current-frame CFAR detections, labeled D1, D2, ...
+- **Historical stars**: persist mode shows past detections with age-based coloring: red (<10s), yellow (<60s), grey (>=60s)
+- **Cyan circles + labels**: confirmed tracks with ID labels (T31, T32, ...)
+- **Trail lines**: track trajectory history. Active tracks = bold cyan (2.5px), inactive = age-colored (red/yellow/grey, 1.5px)
+- **Stale track markers**: open circles for tracks that have lost detection
 
 ## What's Implemented
 
@@ -71,12 +88,16 @@ The left sidebar shows real-time status in monospace columns:
 - **MTI clutter filtering** — selectable 2-pulse, 3-pulse (default), or Butterworth high-pass along slow-time
 - **2D FFT** for range-Doppler map generation
 - **Range cropping** to [0, max_range] before CFAR — reduces processing from ~1080 to ~67 range bins
+- **Per-Doppler-bin normalization** — flattens fixed-frequency spur bands (clock/mixer harmonics) that appear as bright vertical columns in the RD map. Subtracts the per-column median, preserving point targets while eliminating symmetric artifacts.
+- **Zero-Doppler suppression** — replaces center 3 Doppler bins with per-range median to kill residual stationary clutter that survives MTI
+- **Min-range zeroing** — zeros heatmap display below `min_range` to hide the TX leakage blob
 
 ### Detection
 - **2D CA-CFAR** (Cell-Averaging Constant False Alarm Rate) with configurable guard/reference cells and bias
 - **Connected-component clustering** to group adjacent CFAR cells into discrete targets
 - **Threshold-relative display** — noise floor maps to black, only signal above CFAR threshold is visible
 - **Near-range filtering** to reject TX leakage ghosts below configurable minimum range
+- **Velocity sidelobe blanking** — removes weaker targets at the same range that are likely Hann window sidelobes (-31 dB) of a stronger target. Two real targets at similar range with similar power survive.
 
 ### Angle Estimation
 - **Monopulse** using sum (ch0+ch1) and difference (ch0-ch1) beams
@@ -91,16 +112,28 @@ The left sidebar shows real-time status in monospace columns:
 - Greedy nearest-neighbor association with Mahalanobis distance gating
 - **M-of-N confirmation** (3 hits in 5 frames) before track promotion
 - Configurable coast/delete after N consecutive misses
-- Track trajectory trails on the display
+- Track trajectory trails with age-based color coding
 
 ### Display (PyQtGraph)
-- Range-Doppler heatmap with inferno colormap
-- Detection markers (stars) and track markers (circles) with distinct active/stale styling
-- Trajectory trail lines for tracked targets
-- Info panel with aligned columns: detections table (range, velocity, azimuth, power) and tracks table (ID, range, velocity, azimuth, age)
-- **Persist mode** — accumulates detection/track history across frames with visual distinction (filled vs open markers)
-- **Live-configurable** chirp count (64/128/256), CFAR bias, min cluster size, min range, display dynamic range
-- JSONL frame logging for offline analysis
+- Range-Doppler heatmap with inferno colormap (toggleable via H key)
+- Numbered detection markers (D1, D2...) and track markers (T31, T32...) with labels
+- **Age-based color coding**: detections and inactive trails colored by age — red (<10s), yellow (<60s), grey (>=60s)
+- **Bold active trails** (2.5px cyan) vs thin inactive trails (1.5px, age-colored)
+- Info panel with aligned columns: detections table (# Range Vel Pwr Az Age) and tracks table (ID Rng Vel Az Dur Age)
+- **Persist mode** — accumulates detection/track history with visual distinction
+- **Live-configurable** chirp count (64/128/256), CFAR bias, min cluster, min range, display dynamic range
+
+### Logging
+- **Dual event-based JSON logging** — only writes when detections or tracks exist, not every frame:
+  - `detections.json`: frame, time, dt, noise floor, CFAR params, Rx gain, detection list (range, velocity, power, angle, pixel count)
+  - `tracks.json`: frame, time, dt, confirmed tracks (state + covariance diagonal), tentative tracks
+- Flushed every 10 frames for durability
+
+### Calibration
+- **Per-element gain calibration** — measures each element individually, computes correction factors to equalize gain across all 8 elements
+- **Per-element phase calibration** — sweeps adjacent element pairs to find their phase offsets, computes cumulative corrections for beam coherence
+- **Channel calibration** — compensates gain mismatch between the two ADAR1000 sub-arrays and SDR Rx channels
+- Calibration values loaded automatically at startup from `.pkl` files
 
 ## Hardware Reference
 
@@ -121,32 +154,23 @@ The left sidebar shows real-time status in monospace columns:
 ### Signal Quality
 - **Coherent integration gain**: Average multiple bursts before CFAR to improve SNR at the cost of update rate. Even 2-burst averaging gives ~3 dB improvement for slow targets.
 - **Sidelobe suppression**: Replace Hann with Taylor or Dolph-Chebyshev windows for better sidelobe/mainlobe trade-off. Hann gives -31 dB sidelobes; Taylor can achieve -40 dB with narrower mainlobe widening.
-- **DC offset removal**: Subtract per-chirp mean before FFT to eliminate the zero-Doppler DC spike that can leak through MTI filters on short bursts.
 - **Phase noise compensation**: Estimate and correct range-dependent phase noise from the ADF4159 PLL using the TX leakage signal as a reference. This extends usable dynamic range at longer ranges.
 
 ### Detection Refinement
 - **OS-CFAR** (Ordered Statistic): Replace cell-averaging with order-statistic CFAR for better performance in non-homogeneous clutter (e.g., near walls or at clutter edges). Uses the k-th sorted reference cell instead of the mean.
 - **Interpolated peak finding**: Use parabolic or sinc interpolation on the FFT magnitude around each detection peak to get sub-bin range and velocity estimates. Currently limited to bin resolution (~0.3 m range, ~0.47 m/s velocity).
-- **CFAR map caching**: Pre-compute the reference cell kernel as a convolution filter (uniform_filter) instead of per-cell sliding window — 5-10x faster for large maps.
 
 ### Angle Estimation
 - **Beam steering for wide-angle targets**: When a track approaches the +/-15 degree monopulse ambiguity limit, steer the ADAR1000 phase shifters to re-center the beam on the target. The hardware supports 2.8 degree resolution and 20 ns switching.
-- **Calibration-aware monopulse**: Load the CN0566's stored gain/phase calibration (.pkl files) to compensate sub-array mismatch. This corrects systematic angle bias, especially off-boresight.
 - **Virtual array extension**: Use both TX outputs (TX1, TX2) in alternating bursts to create a 16-element virtual array. Doubles the aperture, halving the beamwidth and extending unambiguous monopulse FOV.
 
 ### Tracking
-- **Extended Kalman Filter (EKF)**: The current linear KF assumes range changes linearly with velocity, which is exact. But adding azimuth rate (turning targets) requires a nonlinear state transition — EKF handles this naturally.
+- **Extended Kalman Filter (EKF)**: Adding azimuth rate (turning targets) requires a nonlinear state transition — EKF handles this naturally.
 - **IMM (Interacting Multiple Model)**: Run parallel KFs with different motion models (constant velocity, constant acceleration, stationary) and blend their outputs. Better handles targets that stop, start, or turn.
-- **Track smoothing / retrodiction**: After each update, run the Kalman filter backwards over the last N states (Rauch-Tung-Striebel smoother) to refine the full trajectory. Useful for post-processing logged data.
 - **Probabilistic data association (JPDA)**: Replace greedy nearest-neighbor with joint probabilistic association for better handling of crossing targets and dense scenarios.
 
-### Prediction and Extrapolation
-- **Track-based gating**: Use the predicted track state to narrow the CFAR search area in the next frame — reduces false alarms and computation.
-- **Coasting with prediction**: When a track loses detection (occlusion, fade), continue predicting its state forward using the last known velocity. Display predicted position as a distinct marker.
-- **Collision / proximity alerts**: Compare predicted trajectories of multiple tracks to detect potential intersections or close approaches.
-
 ### System-Level
-- **Automatic gain control**: Monitor peak power levels and adjust rx_gain / tx_gain to keep the signal within the ADC's linear range. Prevents saturation on close targets and improves sensitivity for distant ones.
+- **Automatic gain control**: Monitor peak power levels and adjust rx_gain to keep the signal within the ADC's linear range. Prevents saturation on close targets and improves sensitivity for distant ones.
 - **Adaptive chirp parameters**: Increase num_chirps (better velocity resolution) when targets are slow, decrease (faster update rate) when targets are fast. Driven by tracker velocity estimates.
 - **Multi-frame accumulation display**: Waterfall or history plot showing target range vs. time, complementing the instantaneous range-Doppler map.
 
@@ -288,4 +312,4 @@ All HMC451LP3 software changes apply, plus:
 bash tools/deploy.sh
 ```
 
-Copies `Playground/` (including `lib/`) to `analog@phaser.local:/home/analog/yolo` via SSH.
+Copies `Playground/` (including `lib/` and `calibrate.py`) to `analog@phaser.local:/home/analog/yolo` via SSH.

@@ -63,8 +63,15 @@ def init_hardware(cfg):
     sdr.rx_enabled_channels = [0, 1]
     sdr.gain_control_mode_chan0 = 'manual'
     sdr.gain_control_mode_chan1 = 'manual'
-    sdr.rx_hardwaregain_chan0 = int(cfg.rx_gain)
-    sdr.rx_hardwaregain_chan1 = int(cfg.rx_gain)
+    # Apply channel calibration (compensates sub-array / SDR Rx gain mismatch)
+    try:
+        phaser.load_channel_cal()
+        ccal = phaser.ccal
+        print(f"Channel cal loaded: [{ccal[0]:.1f}, {ccal[1]:.1f}] dB")
+    except Exception:
+        ccal = [0.0, 0.0]
+    sdr.rx_hardwaregain_chan0 = int(cfg.rx_gain + ccal[0])
+    sdr.rx_hardwaregain_chan1 = int(cfg.rx_gain + ccal[1])
 
     # Configure SDR Tx
     sdr.tx_lo = int(cfg.center_freq)
