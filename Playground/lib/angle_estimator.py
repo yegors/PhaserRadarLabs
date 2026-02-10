@@ -71,11 +71,13 @@ class MonopulseEstimator:
             confidence: Quality metric (0 to 1). Based on how purely real the
                         monopulse ratio is. Low confidence means unreliable estimate.
         """
-        # Avoid division by zero
+        # Avoid division by zero (np.where evaluates both branches,
+        # so suppress the harmless warnings from the masked-off path)
         sum_mag = np.abs(sum_data)
         valid = sum_mag > 1e-10
 
-        ratio = np.where(valid, diff_data / sum_data, 0 + 0j)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            ratio = np.where(valid, diff_data / sum_data, 0 + 0j)
 
         # The angle is encoded in the real part of the ratio
         # sin(θ) = (λ / (π * d)) * Re(Δ/Σ)  for small angles
@@ -89,11 +91,12 @@ class MonopulseEstimator:
         # Confidence: ratio of real to total magnitude of the monopulse ratio
         # A pure single target gives a purely real ratio → confidence ≈ 1
         ratio_mag = np.abs(ratio)
-        confidence = np.where(
-            ratio_mag > 1e-10,
-            np.abs(np.real(ratio)) / ratio_mag,
-            0.0
-        )
+        with np.errstate(divide='ignore', invalid='ignore'):
+            confidence = np.where(
+                ratio_mag > 1e-10,
+                np.abs(np.real(ratio)) / ratio_mag,
+                0.0
+            )
 
         return angle_deg, confidence
 

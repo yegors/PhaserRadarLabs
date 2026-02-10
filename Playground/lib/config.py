@@ -14,60 +14,61 @@ class RadarConfig:
 
     def __init__(self):
         # ── RF Parameters ──
-        self.sample_rate = 4e6
-        self.center_freq = 2.1e9
-        self.signal_freq = 100e3
-        self.rx_gain = 60
-        self.tx_gain = 0
-        self.output_freq = 9.9e9
-        self.chirp_BW = 500e6
-        self.ramp_time = 300          # us
-        self.num_chirps = 64
-        self.max_range = 20.0         # m (display limit)
-        self.min_range = 1.0          # m (TX leakage filter)
+        self.sample_rate = 4e6  # ADC sampling rate in samples per second.
+        self.center_freq = 2.1e9  # RF center frequency for transceiver tuning (Hz).
+        self.signal_freq = 100e3  # IF/baseband tone used in FMCW processing (Hz).
+        self.rx_gain = 60  # Receiver gain level.
+        self.tx_gain = 0  # Transmit gain level.
+        self.output_freq = 9.9e9  # Effective radar output carrier frequency (Hz).
+        self.chirp_BW = 500e6  # Chirp sweep bandwidth (Hz).
+        self.ramp_time = 300  # Nominal chirp ramp duration (us).
+        self.num_chirps = 64  # Number of chirps per frame/CPI.
+        self.max_range = 20.0  # Maximum displayed/processed range (m).
+        self.min_range = 1.0  # Minimum usable range to suppress near-field leakage (m).
 
         # ── Processing ──
-        self.mti_mode = '3pulse'
-        self.mti_highpass_cutoff = 0.05
-        self.range_window = 'hann'
-        self.doppler_window = 'hann'
+        self.mti_mode = '3pulse'  # MTI filter mode selection.
+        self.mti_highpass_cutoff = 0.05  # High-pass cutoff for MTI filtering.
+        self.range_window = 'hann'  # Window function applied before range FFT.
+        self.doppler_window = 'hann'  # Window function applied before Doppler FFT.
 
         # ── CFAR ──
-        self.cfar_enabled = True
-        self.cfar_guard_range = 3
-        self.cfar_guard_doppler = 3
-        self.cfar_ref_range = 6
-        self.cfar_ref_doppler = 6
-        self.cfar_bias_db = 20.0
-        self.cfar_method = 'average'
-        self.cfar_min_cluster = 10
+        self.cfar_enabled = True  # Enables/disables CFAR detection.
+        self.cfar_guard_range = 3  # Number of guard cells in range dimension.
+        self.cfar_guard_doppler = 3  # Number of guard cells in Doppler dimension.
+        self.cfar_ref_range = 6  # Number of reference cells in range dimension.
+        self.cfar_ref_doppler = 6  # Number of reference cells in Doppler dimension.
+        self.cfar_bias_db = 20.0  # Detection threshold offset above noise estimate (dB).
+        self.cfar_method = 'average'  # CFAR noise estimation method.
+        self.cfar_min_cluster = 7  # Minimum cluster size to accept as a detection.
 
         # ── Tracking ──
-        self.tracking_enabled = True
-        self.track_confirm_m = 3
-        self.track_confirm_n = 5
-        self.track_max_misses = 5
-        self.track_gate_distance = 10.0
+        self.tracking_enabled = True  # Enables/disables multi-target tracking.
+        self.track_confirm_m = 3  # Required hits for track confirmation (M-of-N).
+        self.track_confirm_n = 5  # Confirmation window length for M-of-N logic.
+        self.track_max_misses = 3  # Max consecutive misses before deleting a track.
+        self.track_gate_distance = 5.0  # Association gate radius for matching detections (m).
 
         # ── Display ──
-        self.display_range_db = 30.0
-        self.save_data = False
-        self.save_file = "enhanced_radar_data.npy"
-        self.log_file_path = "radar_log.jsonl"
+        self.display_range_db = 30.0  # Dynamic display range for intensity visualization (dB).
+        self.save_data = False  # Enables/disables raw/processed data logging.
+        self.save_file = "enhanced_radar_data.npy"  # Output file path for saved radar data.
+        self.det_log_path = "detections.json"  # Output path for detection log JSON.
+        self.trk_log_path = "tracks.json"  # Output path for track log JSON.
 
         # ── Derived values (set by recompute_derived) ──
-        self.ramp_time_s = 0.0
-        self.PRI_ms = 0.0
-        self.PRI_s = 0.0
-        self.N_frame = 0
-        self.good_ramp_samples = 0
-        self.start_offset_samples = 0
-        self.fft_size = 0
-        self.buffer_size = 0
-        self.axes = {}
-        self.range_crop_idx = np.array([], dtype=int)
-        self.range_axis_cropped = np.array([])
-        self.frame_time = 0.0
+        self.ramp_time_s = 0.0  # Actual chirp ramp duration in seconds.
+        self.PRI_ms = 0.0  # Pulse repetition interval in milliseconds.
+        self.PRI_s = 0.0  # Pulse repetition interval in seconds.
+        self.N_frame = 0  # Number of ADC samples in one PRI/frame.
+        self.good_ramp_samples = 0  # Usable ramp samples after front-end offset removal.
+        self.start_offset_samples = 0  # Sample index where valid ramp data starts.
+        self.fft_size = 0  # Range FFT length (power-of-two).
+        self.buffer_size = 0  # RX buffer size chosen to hold full acquisition.
+        self.axes = {}  # Precomputed range/Doppler axis vectors.
+        self.range_crop_idx = np.array([], dtype=int)  # Indices for selected in-range bins.
+        self.range_axis_cropped = np.array([])  # Cropped range axis used for display/processing.
+        self.frame_time = 0.0  # Total CPI/frame duration in seconds.
 
     def recompute_derived(self, ramp_time_actual_us, tdd_frame_length_ms, tdd_ch0_on_ms):
         """Recompute all derived timing/axis values from base parameters.
@@ -132,3 +133,12 @@ class RadarConfig:
 
         # Frame time
         self.frame_time = total_time / 1000  # seconds
+
+    def update_range_crop(self):
+        """Recompute range crop for current max_range (lightweight, no HW touch)."""
+        range_crop_mask = (
+            (self.axes['range_axis'] >= 0) &
+            (self.axes['range_axis'] <= self.max_range)
+        )
+        self.range_crop_idx = np.where(range_crop_mask)[0]
+        self.range_axis_cropped = self.axes['range_axis'][self.range_crop_idx]

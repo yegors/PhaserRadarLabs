@@ -61,12 +61,14 @@ def apply_window_2d(chirps, range_window='hann', doppler_window='hann'):
 
 
 def _get_window(name, length):
-    """Return a numpy window of the given type and length."""
+    """Return a window of the given type and length."""
+    if name == 'blackmanharris':
+        from scipy.signal.windows import blackmanharris
+        return blackmanharris(length)
     windows = {
         'hann': np.hanning,
         'hamming': np.hamming,
         'blackman': np.blackman,
-        'blackmanharris': np.blackman,  # numpy doesn't have blackman-harris, use blackman
     }
     if name in windows:
         return windows[name](length)

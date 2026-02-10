@@ -68,17 +68,18 @@ class RadarGUI:
         self._update_image_transform()
         self.plot_w.addItem(self.rd_img)
 
-        # Persist: historical detection dots (faded red)
+        # Persist: historical detections (same shape, dimmed)
         self.hist_det_plot = pg.ScatterPlotItem(
-            symbol='o', size=4, pen=None,
-            brush=pg.mkBrush(255, 80, 80, 50),
+            symbol='star', size=18,
+            pen=pg.mkPen(255, 255, 255, 60, width=1.5),
+            brush=pg.mkBrush(255, 50, 30, 60),
         )
         self.plot_w.addItem(self.hist_det_plot)
 
-        # Persist: stale/dead track markers (dim open circles)
+        # Persist: stale/dead track markers (same size, dimmed)
         self.stale_trk_plot = pg.ScatterPlotItem(
-            symbol='o', size=10,
-            pen=pg.mkPen(0, 200, 255, 80, width=1),
+            symbol='o', size=14,
+            pen=pg.mkPen(0, 200, 255, 80, width=2),
             brush=pg.mkBrush(0, 0, 0, 0),
         )
         self.plot_w.addItem(self.stale_trk_plot)
@@ -90,6 +91,14 @@ class RadarGUI:
             _line = pg.PlotDataItem(pen=_trail_pen)
             self.plot_w.addItem(_line)
             self.trail_lines.append(_line)
+
+        # Tentative track markers (small yellow diamonds)
+        self.tent_trk_plot = pg.ScatterPlotItem(
+            symbol='d', size=10,
+            pen=pg.mkPen(255, 200, 50, width=1.5),
+            brush=pg.mkBrush(255, 200, 50, 60),
+        )
+        self.plot_w.addItem(self.tent_trk_plot)
 
         # CFAR detection markers (bright stars)
         self.det_plot = pg.ScatterPlotItem(
@@ -108,6 +117,24 @@ class RadarGUI:
             name='Tracks',
         )
         self.plot_w.addItem(self.trk_plot)
+
+        # Detection labels on map (pool of 15, matching det table limit)
+        self.det_labels = []
+        for _ in range(15):
+            label = pg.TextItem(color=(255, 100, 80), anchor=(0, 1))
+            label.setFont(QtGui.QFont('Consolas', 9))
+            label.setVisible(False)
+            self.plot_w.addItem(label)
+            self.det_labels.append(label)
+
+        # Track ID labels on map (pool of 20, matching max_tracks)
+        self.trk_labels = []
+        for _ in range(20):
+            label = pg.TextItem(color=(0, 200, 255), anchor=(0, 1))
+            label.setFont(QtGui.QFont('Consolas', 9))
+            label.setVisible(False)
+            self.plot_w.addItem(label)
+            self.trk_labels.append(label)
 
         self.plot_w.addLegend(offset=(10, 10))
         main_layout.addWidget(self.plot_w, stretch=3)
@@ -135,6 +162,10 @@ class RadarGUI:
 
         # Parameter controls
         self.params = Parameter.create(name='Controls', type='group', children=[
+            {'name': 'max_range', 'title': 'Range (m)', 'type': 'list',
+             'limits': [20, 50, 100], 'value': int(cfg.max_range)},
+            {'name': 'rx_gain', 'title': 'Rx Gain (dB)', 'type': 'int',
+             'value': int(cfg.rx_gain), 'limits': (0, 70), 'step': 5},
             {'name': 'chirps', 'title': 'Chirps', 'type': 'list',
              'limits': [64, 128, 256], 'value': cfg.num_chirps},
             {'name': 'cfar_bias', 'title': 'CFAR Bias (dB)', 'type': 'float',
@@ -143,13 +174,16 @@ class RadarGUI:
              'value': cfg.cfar_min_cluster, 'limits': (1, 50), 'step': 1},
             {'name': 'min_range', 'title': 'Min Range (m)', 'type': 'float',
              'value': cfg.min_range, 'limits': (0, 10), 'step': 0.5},
+            {'name': 'persist', 'title': 'Persist', 'type': 'bool', 'value': True},
+            {'name': 'heatmap', 'title': 'Heatmap', 'type': 'bool', 'value': True},
             {'name': 'display_db', 'title': 'Display Range (dB)', 'type': 'float',
              'value': cfg.display_range_db, 'limits': (5, 60), 'step': 1},
-            {'name': 'persist', 'title': 'Persist', 'type': 'bool', 'value': True},
         ])
+        self.params.child('heatmap').sigValueChanged.connect(
+            lambda _, v: self.params.child('display_db').show(v))
         ptree = ParameterTree(showHeader=False)
         ptree.setParameters(self.params)
-        ptree.setMaximumHeight(200)
+        ptree.setMaximumHeight(290)
         right_layout.addWidget(ptree)
 
         main_layout.addWidget(right_panel, stretch=1)
@@ -168,14 +202,28 @@ class RadarGUI:
                 not self.params.child('persist').value()))
         QtWidgets.QShortcut(QtGui.QKeySequence('R'), self.win,
             lambda: self.plot_w.autoRange())
+        QtWidgets.QShortcut(QtGui.QKeySequence('H'), self.win,
+            lambda: self.params.child('heatmap').setValue(
+                not self.params.child('heatmap').value()))
 
         # ── Frame state ──
         self.frame_count = 0
         self.t_start = time.time()
         self.all_data = []
-        self.log_f = open(cfg.log_file_path, 'w')
-        print(f"Logging to {cfg.log_file_path}")
-        print("CTRL+C to stop | P = toggle persist | R = reset view")
+        self.det_log = open(cfg.det_log_path, 'w')
+        self.trk_log = open(cfg.trk_log_path, 'w')
+        print(f"Logging to {cfg.det_log_path}, {cfg.trk_log_path}")
+        print("CTRL+C to stop | P = persist | H = heatmap | R = reset view")
+
+    @staticmethod
+    def _age_color(age_s):
+        """Color by age: <10s red, <60s yellow, >=60s grey."""
+        if age_s < 10:
+            return (255, 50, 30)
+        elif age_s < 60:
+            return (255, 200, 50)
+        else:
+            return (140, 140, 140)
 
     def _update_image_transform(self):
         """Recompute the image transform from current config axes."""
@@ -202,6 +250,21 @@ class RadarGUI:
             if axes_changed:
                 self._update_image_transform()
 
+            # Range preset
+            new_range = int(self.params.child('max_range').value())
+            if new_range != int(cfg.max_range):
+                cfg.max_range = float(new_range)
+                cfg.update_range_crop()
+                self._update_image_transform()
+                self.plot_w.setYRange(0, cfg.max_range, padding=0)
+
+            # Rx gain (live hardware update)
+            new_rx_gain = int(self.params.child('rx_gain').value())
+            if new_rx_gain != int(cfg.rx_gain):
+                cfg.rx_gain = new_rx_gain
+                hw.sdr.rx_hardwaregain_chan0 = new_rx_gain
+                hw.sdr.rx_hardwaregain_chan1 = new_rx_gain
+
             cfg.cfar_bias_db = self.params.child('cfar_bias').value()
             cfg.cfar_min_cluster = int(self.params.child('min_cluster').value())
             cfg.min_range = self.params.child('min_range').value()
@@ -219,41 +282,79 @@ class RadarGUI:
                 self.all_data.append((chan0.copy(), chan1.copy()))
 
             rd_display, targets, tracks, diag = process_frame(chan0, chan1, cfg, hw)
+            all_tracks = hw.tracker.get_all_tracks()
+            tentative = [t for t in all_tracks if not t.confirmed]
             self.frame_count += 1
 
             # Log
             elapsed = time.time() - self.t_start
-            log_entry = {
-                'frame': self.frame_count,
-                'time_s': round(elapsed, 3),
-                'cfar_cells': diag['cfar_cells'],
-                'raw_clusters': diag['raw_clusters'],
-                'num_detections': len(targets),
-                'num_tracks': len(tracks),
-                'detections': [{
-                    'range_m': round(t['range_m'], 2),
-                    'velocity_mps': round(t['velocity_mps'], 3),
-                    'power_db': round(t['power_db'], 1),
-                    'pixels': t['pixel_count'],
-                    'angle_deg': round(t.get('angle_deg', 0), 1),
-                } for t in targets],
-                'tracks': [{
-                    'id': int(t.track_id),
-                    'range_m': round(float(t.state[0]), 2),
-                    'vel_mps': round(float(t.state[1]), 3),
-                    'az_deg': round(float(t.state[2]), 1),
-                    'age': int(t.age),
-                    'hits': int(t.hits),
-                    'misses': int(t.misses),
-                } for t in tracks],
-            }
-            self.log_f.write(json.dumps(log_entry) + '\n')
-            self.log_f.flush()
+            dt_est = elapsed / self.frame_count if self.frame_count > 0 else 0.3
+            # Detection log (only when detections exist)
+            if targets:
+                self.det_log.write(json.dumps({
+                    'frame': self.frame_count,
+                    'time_s': round(elapsed, 3),
+                    'dt_s': round(dt_est, 4),
+                    'noise_floor_db': round(diag['noise_floor_db'], 1),
+                    'cfar_cells': diag['cfar_cells'],
+                    'raw_clusters': diag['raw_clusters'],
+                    'cfar_bias_db': cfg.cfar_bias_db,
+                    'min_cluster': cfg.cfar_min_cluster,
+                    'min_range_m': cfg.min_range,
+                    'num_chirps': cfg.num_chirps,
+                    'mti_mode': cfg.mti_mode,
+                    'rx_gain': int(cfg.rx_gain),
+                    'detections': [{
+                        'id': i,
+                        'range_m': round(t['range_m'], 3),
+                        'velocity_mps': round(t['velocity_mps'], 4),
+                        'power_db': round(t['power_db'], 1),
+                        'angle_deg': round(t.get('angle_deg', 0), 2),
+                        'pixel_count': t['pixel_count'],
+                    } for i, t in enumerate(targets, 1)],
+                }) + '\n')
+
+            # Track log (only when tracks exist)
+            if tracks or tentative:
+                self.trk_log.write(json.dumps({
+                    'frame': self.frame_count,
+                    'time_s': round(elapsed, 3),
+                    'dt_s': round(dt_est, 4),
+                    'num_detections': len(targets),
+                    'confirmed': [{
+                        'id': int(t.track_id),
+                        'range_m': round(float(t.state[0]), 3),
+                        'vel_mps': round(float(t.state[1]), 4),
+                        'az_deg': round(float(t.state[2]), 2),
+                        'hits': int(t.hits),
+                        'misses': int(t.misses),
+                        'age': int(t.age),
+                        'cov_rng': round(float(t.covariance[0, 0]), 4),
+                        'cov_vel': round(float(t.covariance[1, 1]), 4),
+                        'cov_az': round(float(t.covariance[2, 2]), 4),
+                    } for t in tracks],
+                    'tentative': [{
+                        'id': int(t.track_id),
+                        'range_m': round(float(t.state[0]), 3),
+                        'vel_mps': round(float(t.state[1]), 4),
+                        'az_deg': round(float(t.state[2]), 2),
+                        'hits': int(t.hits),
+                        'misses': int(t.misses),
+                        'age': int(t.age),
+                    } for t in tentative],
+                }) + '\n')
+
+            if self.frame_count % 10 == 0:
+                self.det_log.flush()
+                self.trk_log.flush()
 
             # ── Update display ──
 
-            # Heatmap
-            self.rd_img.setImage(rd_display.T, autoLevels=False)
+            # Heatmap (display-only — detections/tracks come from CFAR, not this image)
+            show_heatmap = self.params.child('heatmap').value()
+            self.rd_img.setVisible(show_heatmap)
+            if show_heatmap:
+                self.rd_img.setImage(rd_display.T, autoLevels=False)
 
             # CFAR detection markers
             if targets:
@@ -264,26 +365,60 @@ class RadarGUI:
             else:
                 self.det_plot.setData([], [])
 
-            # Persist: historical detection dots
+            # Persist: historical detection stars (age-colored)
             if persist and self._persist_dets:
-                hist = [(v, r) for fr, r, v, p, a in self._persist_dets
-                        if fr != self.frame_count]
-                if hist:
-                    self.hist_det_plot.setData(
-                        x=[h[0] for h in hist], y=[h[1] for h in hist])
+                hist_spots = []
+                for fr, r, v, p, a in self._persist_dets:
+                    if fr == self.frame_count:
+                        continue
+                    age = (self.frame_count - fr) * dt_est
+                    c = self._age_color(age)
+                    hist_spots.append({
+                        'pos': (v, r), 'symbol': 'star', 'size': 18,
+                        'pen': pg.mkPen(*c, 180, width=1.5),
+                        'brush': pg.mkBrush(*c, 120),
+                    })
+                if hist_spots:
+                    self.hist_det_plot.setData(spots=hist_spots)
                 else:
                     self.hist_det_plot.setData([], [])
             else:
                 self.hist_det_plot.setData([], [])
 
+            # Detection labels on map (color matches star age)
+            dlbl_idx = 0
+            for i, t in enumerate(targets[:8], 1):
+                if dlbl_idx >= len(self.det_labels):
+                    break
+                self.det_labels[dlbl_idx].setText(f"D{i}")
+                self.det_labels[dlbl_idx].setPos(t['velocity_mps'], t['range_m'])
+                self.det_labels[dlbl_idx].setColor(self._age_color(0))
+                self.det_labels[dlbl_idx].setVisible(True)
+                dlbl_idx += 1
+            if persist:
+                for fr, r, v, p, a in self._persist_dets:
+                    if fr == self.frame_count:
+                        continue
+                    if dlbl_idx >= len(self.det_labels):
+                        break
+                    age = (self.frame_count - fr) * dt_est
+                    c = self._age_color(age)
+                    self.det_labels[dlbl_idx].setText(f"D{dlbl_idx + 1}")
+                    self.det_labels[dlbl_idx].setPos(v, r)
+                    self.det_labels[dlbl_idx].setColor((*c, 180))
+                    self.det_labels[dlbl_idx].setVisible(True)
+                    dlbl_idx += 1
+            for i in range(dlbl_idx, len(self.det_labels)):
+                self.det_labels[i].setVisible(False)
+
             # Cache trail data for all active tracks
+            active_ids = {trk.track_id for trk in tracks}
             for trk in tracks:
                 if len(trk.history) > 1:
                     self._trail_cache[trk.track_id] = np.array(trk.history)
 
             # In non-persist mode, prune dead tracks from cache
             if not persist:
-                active_ids = {trk.track_id for trk in tracks}
                 self._trail_cache = {
                     k: v for k, v in self._trail_cache.items() if k in active_ids
                 }
@@ -297,6 +432,27 @@ class RadarGUI:
             else:
                 self.trk_plot.setData([], [])
 
+            # Track ID labels on map (active = bright, stale = dim)
+            label_idx = 0
+            for trk in tracks:
+                if label_idx >= len(self.trk_labels):
+                    break
+                self.trk_labels[label_idx].setText(f"T{trk.track_id}")
+                self.trk_labels[label_idx].setPos(float(trk.state[1]), float(trk.state[0]))
+                self.trk_labels[label_idx].setColor((0, 200, 255))
+                self.trk_labels[label_idx].setVisible(True)
+                label_idx += 1
+            if persist:
+                for tid, t in self._persist_tracks.items():
+                    if not t['active'] and label_idx < len(self.trk_labels):
+                        self.trk_labels[label_idx].setText(f"T{tid}")
+                        self.trk_labels[label_idx].setPos(t['v'], t['r'])
+                        self.trk_labels[label_idx].setColor((0, 200, 255, 80))
+                        self.trk_labels[label_idx].setVisible(True)
+                        label_idx += 1
+            for i in range(label_idx, len(self.trk_labels)):
+                self.trk_labels[i].setVisible(False)
+
             # Persist: stale/dead track markers
             if persist and self._persist_tracks:
                 stale = [(t['v'], t['r']) for t in self._persist_tracks.values()
@@ -309,16 +465,37 @@ class RadarGUI:
             else:
                 self.stale_trk_plot.setData([], [])
 
-            # Trail lines (active + persisted dead tracks)
-            trail_items = list(self._trail_cache.values())
-            for i, hist in enumerate(trail_items[:MAX_TRAILS]):
-                self.trail_lines[i].setData(x=hist[:, 1], y=hist[:, 0])
-            for i in range(len(trail_items), MAX_TRAILS):
+            # Trail lines (active = bold cyan, inactive = age-colored)
+            now_trail = time.time()
+            trail_idx = 0
+            for tid, hist in self._trail_cache.items():
+                if trail_idx >= MAX_TRAILS:
+                    break
+                if tid in active_ids:
+                    pen = pg.mkPen(color=(0, 200, 255, 150), width=2.5)
+                else:
+                    pinfo = self._persist_tracks.get(tid)
+                    age_s = (now_trail - pinfo['last_seen']) if pinfo else 0
+                    c = self._age_color(age_s)
+                    pen = pg.mkPen(*c, 100, width=1.5)
+                self.trail_lines[trail_idx].setPen(pen)
+                self.trail_lines[trail_idx].setData(x=hist[:, 1], y=hist[:, 0])
+                trail_idx += 1
+            for i in range(trail_idx, MAX_TRAILS):
                 self.trail_lines[i].setData([], [])
+
+            # Tentative track markers (unconfirmed — yellow diamonds)
+            if tentative:
+                self.tent_trk_plot.setData(
+                    x=[float(t.state[1]) for t in tentative],
+                    y=[float(t.state[0]) for t in tentative],
+                )
+            else:
+                self.tent_trk_plot.setData([], [])
 
             # ── Info panel ──
             fps = self.frame_count / elapsed if elapsed > 0 else 0
-            _W = 28
+            _W = 36
             _sec = lambda s: f"\u2500\u2500 {s} " + "\u2500" * max(0, _W - len(s) - 4)
 
             # Update persist history
@@ -328,8 +505,8 @@ class RadarGUI:
                         self.frame_count, t['range_m'], t['velocity_mps'],
                         t['power_db'], t.get('angle_deg', 0.0),
                     ))
-                if len(self._persist_dets) > 30:
-                    self._persist_dets[:] = self._persist_dets[-30:]
+                if len(self._persist_dets) > 10:
+                    self._persist_dets[:] = self._persist_dets[-10:]
                 active_ids = {trk.track_id for trk in tracks}
                 now = time.time()
                 for trk in tracks:
@@ -338,43 +515,58 @@ class RadarGUI:
                     self._persist_tracks[trk.track_id] = {
                         'r': float(trk.state[0]), 'v': float(trk.state[1]),
                         'az': float(trk.state[2]), 'first_seen': first,
-                        'active': True,
+                        'last_seen': now, 'active': True,
                     }
                 for tid in self._persist_tracks:
                     if tid not in active_ids:
                         self._persist_tracks[tid]['active'] = False
+                # Limit persist tracks to last 10
+                if len(self._persist_tracks) > 10:
+                    for k in list(self._persist_tracks.keys())[:-10]:
+                        del self._persist_tracks[k]
             else:
                 self._persist_dets.clear()
                 self._persist_tracks.clear()
 
+            peak_power = max((t['power_db'] for t in targets), default=None)
+
             # ── STATUS ──
             lines = [
                 _sec('STATUS'),
-                f" Frame {self.frame_count:<10}FPS {fps:.1f}",
-                f" MTI   {cfg.mti_mode}",
-                f" CFAR  {diag['cfar_cells']} cells  {diag['raw_clusters']} cls",
-                f"       {len(targets)} det   {len(tracks)} tracks",
+                f" Frame {self.frame_count:<8} FPS {fps:.1f}",
+                f" Noise {diag['noise_floor_db']:.1f} dB",
+                f" MTI {cfg.mti_mode:<10} Chirps {cfg.num_chirps}",
+                f" Rng res {cfg.axes['range_res']:.2f} m"
+                f"   Vel res {cfg.axes['velocity_res']:.2f} m/s",
+                "",
+                _sec('PIPELINE'),
+                f" CFAR  {diag['cfar_cells']} cells  {diag['raw_clusters']} clusters",
+                f" Det {len(targets):<5} Tracks {len(tracks)}"
+                f"   Tent {len(tentative)}",
+                f" Peak {f'{peak_power:.0f} dB' if peak_power is not None else chr(0x2014)}",
             ]
 
             # ── DETECTIONS ──
             det_rows = []
             for t in targets[:8]:
                 det_rows.append((t['range_m'], t['velocity_mps'], t['power_db'],
-                                 t.get('angle_deg', 0.0), True))
+                                 t.get('angle_deg', 0.0), 0.0, True))
             if persist:
-                hist = [(r, v, p, a, False) for fr, r, v, p, a in self._persist_dets
+                hist = [(r, v, p, a, (self.frame_count - fr) * dt_est, False)
+                        for fr, r, v, p, a in self._persist_dets
                         if fr != self.frame_count]
-                det_rows.extend(hist[-(15 - len(det_rows)):])
+                det_rows.extend(hist[-(10 - len(det_rows)):])
 
-            _dfmt = "{:1s}{:>6s} {:>9s} {:>6s} {:>6s}"
+            _dfmt = " {:1s}{:>4s} {:>6s} {:>9s} {:>6s} {:>6s} {:>5s}"
             if det_rows:
                 lines.append("")
                 lines.append(_sec('DETECTIONS'))
-                lines.append(_dfmt.format(" ", "Rng", "Vel", "Az", "Pwr"))
-                for r, v, p, az, live in det_rows:
+                lines.append(_dfmt.format(" ", "#", "Rng", "Vel", "Pwr", "Az", "Age"))
+                for idx, (r, v, p, az, age, live) in enumerate(det_rows, 1):
                     mark = "\u25b8" if live else " "
-                    lines.append(_dfmt.format(mark, f"{r:.1f}m",
-                        f"{v:+.2f}m/s", f"{az:+.1f}\u00b0", f"{p:.0f}dB"))
+                    lines.append(_dfmt.format(mark, f"D{idx}", f"{r:.1f}m",
+                        f"{v:+.2f}m/s", f"{p:.0f}dB", f"{az:+.1f}\u00b0",
+                        f"{age:.1f}"))
 
             # ── TRACKS ──
             trk_rows = []
@@ -383,29 +575,34 @@ class RadarGUI:
                 for tid in sorted(self._persist_tracks):
                     t = self._persist_tracks[tid]
                     age_s = now_t - t['first_seen']
-                    trk_rows.append((tid, t['r'], t['v'], t['az'], age_s, t['active']))
+                    dur_s = t.get('last_seen', now_t) - t['first_seen']
+                    trk_rows.append((tid, t['r'], t['v'], t['az'], dur_s, age_s, t['active']))
             else:
-                dt_est = elapsed / self.frame_count if self.frame_count > 0 else 0.3
                 for trk in tracks[:8]:
+                    dur_est = trk.age * dt_est
                     trk_rows.append((trk.track_id, float(trk.state[0]),
                                      float(trk.state[1]), float(trk.state[2]),
-                                     trk.age * dt_est, True))
+                                     dur_est, dur_est, True))
 
-            _tfmt = " {:1s}{:>4s} {:>6s} {:>9s} {:>6s} {:>6s}"
+            _tfmt = " {:1s}{:>4s} {:>6s} {:>9s} {:>5s} {:>5s} {:>5s}"
             if trk_rows:
                 lines.append("")
                 lines.append(_sec('TRACKS'))
-                lines.append(_tfmt.format(" ", "ID", "Rng", "Vel", "Az", "Age"))
-                for tid, r, v, az, age_s, active in trk_rows[:10]:
+                lines.append(_tfmt.format(" ", "ID", "Rng", "Vel", "Az", "Dur", "Age"))
+                for tid, r, v, az, dur_s, age_s, active in trk_rows[:10]:
                     mark = "\u25cf" if active else "\u25cb"
                     lines.append(_tfmt.format(mark, str(tid), f"{r:.1f}m",
-                        f"{v:+.2f}m/s", f"{az:+.1f}\u00b0", f"{age_s:.1f}s"))
+                        f"{v:+.2f}m/s", f"{az:+.0f}\u00b0", f"{dur_s:.1f}", f"{age_s:.0f}s"))
 
             self.info_label.setText('\n'.join(lines))
 
             # Status bar
-            p_str = "PERSIST" if persist else ""
-            self.status_bar.showMessage(f"FPS: {fps:.1f}   {p_str}")
+            flags = []
+            if persist: flags.append("PERSIST")
+            if not show_heatmap: flags.append("NO-HEATMAP")
+            self.status_bar.showMessage(
+                f"FPS: {fps:.1f}   Range: {int(cfg.max_range)}m   "
+                f"Rx: {int(cfg.rx_gain)}dB   {' '.join(flags)}")
 
         except Exception as e:
             import traceback
@@ -428,8 +625,10 @@ class RadarGUI:
     def cleanup(self):
         """Stop timer, close log, release hardware, optionally save data."""
         self.timer.stop()
-        self.log_f.close()
-        print(f"\nProcessed {self.frame_count} frames, log saved to {self.cfg.log_file_path}")
+        self.det_log.close()
+        self.trk_log.close()
+        print(f"\nProcessed {self.frame_count} frames")
+        print(f"  {self.cfg.det_log_path}  {self.cfg.trk_log_path}")
 
         hw_cleanup(self.hw)
 

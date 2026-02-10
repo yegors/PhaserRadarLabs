@@ -39,8 +39,8 @@ class KalmanTracker:
 
     def __init__(self, dt=0.1, confirm_m=3, confirm_n=5, max_misses=5,
                  gate_distance=10.0,
-                 process_noise_range=1.0, process_noise_vel=0.5, process_noise_az=5.0,
-                 meas_noise_range=0.5, meas_noise_vel=0.3, meas_noise_az=10.0,
+                 process_noise_range=0.3, process_noise_vel=0.2, process_noise_az=2.0,
+                 meas_noise_range=1.0, meas_noise_vel=0.5, meas_noise_az=15.0,
                  max_tracks=20, history_length=50):
         """
         Args:
