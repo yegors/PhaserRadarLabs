@@ -114,7 +114,10 @@ def process_frame(chan0, chan1, cfg, hw):
 
     # Velocity axis sized to actual Doppler dimension
     n_doppler = rd_db_crop.shape[0]
-    vel_axis = np.linspace(-cfg.axes['max_velocity'], cfg.axes['max_velocity'], n_doppler)
+    if len(cfg.axes['velocity_axis']) == n_doppler:
+        vel_axis = cfg.axes['velocity_axis']
+    else:
+        vel_axis = np.linspace(-cfg.axes['max_velocity'], cfg.axes['max_velocity'], n_doppler)
 
     targets = []
     confirmed_tracks = []
@@ -170,7 +173,14 @@ def process_frame(chan0, chan1, cfg, hw):
             )
 
         if cfg.tracking_enabled:
-            confirmed_tracks = hw.tracker.update(targets)
+            tracker_targets = targets
+            min_conf = getattr(cfg, 'min_angle_confidence', 0.0)
+            if min_conf > 0:
+                tracker_targets = [
+                    t for t in targets
+                    if t.get('angle_confidence', 1.0) >= min_conf
+                ]
+            confirmed_tracks = hw.tracker.update(tracker_targets)
     else:
         cfar_cell_count = 0
         all_clusters = []

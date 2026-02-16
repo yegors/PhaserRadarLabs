@@ -167,7 +167,7 @@ class RadarGUI:
             {'name': 'rx_gain', 'title': 'Rx Gain (dB)', 'type': 'int',
              'value': int(cfg.rx_gain), 'limits': (0, 70), 'step': 5},
             {'name': 'chirps', 'title': 'Chirps', 'type': 'list',
-             'limits': [64, 128, 256], 'value': cfg.num_chirps},
+             'limits': [64, 128, 256, 512], 'value': cfg.num_chirps},
             {'name': 'cfar_bias', 'title': 'CFAR Bias (dB)', 'type': 'float',
              'value': cfg.cfar_bias_db, 'limits': (5, 30), 'step': 0.5},
             {'name': 'min_cluster', 'title': 'Min Cluster', 'type': 'int',
@@ -190,11 +190,21 @@ class RadarGUI:
 
         # Status bar
         self.status_bar = self.win.statusBar()
+        self._status_perf_state = None
+        self._status_styles = {
+            'ok': "color: #8b949e;",
+            'warn': "color: rgb(255, 200, 50);",
+            'over': "color: rgb(255, 50, 30);",
+        }
+        self.status_bar.setStyleSheet(self._status_styles['ok'])
 
         # ── Persist state ──
         self._trail_cache = {}
         self._persist_dets = []
         self._persist_tracks = {}
+        self._hist_style_cache = {}
+        self._trail_style_cache = {}
+        self._trail_active_pen = pg.mkPen(color=(0, 200, 255, 150), width=2.5)
 
         # ── Keyboard shortcuts ──
         QtWidgets.QShortcut(QtGui.QKeySequence('P'), self.win,
@@ -209,6 +219,17 @@ class RadarGUI:
         # ── Frame state ──
         self.frame_count = 0
         self.t_start = time.time()
+        self._last_frame_start = None
+        self._fps_inst = 0.0
+        self._fps_ema = 0.0
+        self._ema_alpha = 0.2
+        self._perf = {
+            'capture_ms': 0.0,
+            'process_ms': 0.0,
+            'log_ms': 0.0,
+            'ui_ms': 0.0,
+            'total_ms': 0.0,
+        }
         self.all_data = []
         self.det_log = open(cfg.det_log_path, 'w')
         self.trk_log = open(cfg.trk_log_path, 'w')
@@ -228,6 +249,8 @@ class RadarGUI:
     def _update_image_transform(self):
         """Recompute the image transform from current config axes."""
         cfg = self.cfg
+        n_doppler = max(1, len(cfg.axes.get('velocity_axis', [])))
+        n_range = max(1, len(cfg.range_crop_idx))
         vel_min = -cfg.axes['max_velocity']
         vel_span = 2 * cfg.axes['max_velocity']
         rng_min = float(cfg.range_axis_cropped.min()) if len(cfg.range_axis_cropped) > 0 else 0
@@ -235,13 +258,25 @@ class RadarGUI:
                     if len(cfg.range_axis_cropped) > 1 else 1)
         tr = QtGui.QTransform()
         tr.translate(vel_min, rng_min)
-        tr.scale(vel_span / cfg.num_chirps, rng_span / len(cfg.range_crop_idx))
+        tr.scale(vel_span / n_doppler, rng_span / n_range)
         self.rd_img.setTransform(tr)
 
     def update(self):
         """Main loop body — called by QTimer each frame."""
         cfg = self.cfg
         hw = self.hw
+        frame_t0 = time.perf_counter()
+
+        if self._last_frame_start is not None:
+            dt = frame_t0 - self._last_frame_start
+            if dt > 0:
+                self._fps_inst = 1.0 / dt
+                if self._fps_ema <= 0:
+                    self._fps_ema = self._fps_inst
+                else:
+                    a = self._ema_alpha
+                    self._fps_ema = (1.0 - a) * self._fps_ema + a * self._fps_inst
+        self._last_frame_start = frame_t0
 
         try:
             # Read runtime parameters from controls
@@ -249,6 +284,10 @@ class RadarGUI:
             axes_changed = apply_chirp_config(cfg, hw, new_chirps)
             if axes_changed:
                 self._update_image_transform()
+                self._trail_cache.clear()
+                self._persist_tracks.clear()
+                self.trk_plot.setData([], [])
+                self.tent_trk_plot.setData([], [])
 
             # Range preset
             new_range = int(self.params.child('max_range').value())
@@ -262,8 +301,9 @@ class RadarGUI:
             new_rx_gain = int(self.params.child('rx_gain').value())
             if new_rx_gain != int(cfg.rx_gain):
                 cfg.rx_gain = new_rx_gain
-                hw.sdr.rx_hardwaregain_chan0 = new_rx_gain
-                hw.sdr.rx_hardwaregain_chan1 = new_rx_gain
+                ccal0, ccal1 = getattr(hw, 'channel_cal', (0.0, 0.0))
+                hw.sdr.rx_hardwaregain_chan0 = int(cfg.rx_gain + ccal0)
+                hw.sdr.rx_hardwaregain_chan1 = int(cfg.rx_gain + ccal1)
 
             cfg.cfar_bias_db = self.params.child('cfar_bias').value()
             cfg.cfar_min_cluster = int(self.params.child('min_cluster').value())
@@ -276,17 +316,24 @@ class RadarGUI:
                 self.rd_img.setLevels([0, cfg.display_range_db])
 
             # Capture + process
+            cap_t0 = time.perf_counter()
             chan0, chan1 = get_radar_data(hw)
+            cap_t1 = time.perf_counter()
+            self._perf['capture_ms'] = (cap_t1 - cap_t0) * 1000.0
 
             if cfg.save_data:
                 self.all_data.append((chan0.copy(), chan1.copy()))
 
+            proc_t0 = time.perf_counter()
             rd_display, targets, tracks, diag = process_frame(chan0, chan1, cfg, hw)
+            proc_t1 = time.perf_counter()
+            self._perf['process_ms'] = (proc_t1 - proc_t0) * 1000.0
             all_tracks = hw.tracker.get_all_tracks()
             tentative = [t for t in all_tracks if not t.confirmed]
             self.frame_count += 1
 
             # Log
+            log_t0 = time.perf_counter()
             elapsed = time.time() - self.t_start
             dt_est = elapsed / self.frame_count if self.frame_count > 0 else 0.3
             # Detection log (only when detections exist)
@@ -347,8 +394,11 @@ class RadarGUI:
             if self.frame_count % 10 == 0:
                 self.det_log.flush()
                 self.trk_log.flush()
+            log_t1 = time.perf_counter()
+            self._perf['log_ms'] = (log_t1 - log_t0) * 1000.0
 
             # ── Update display ──
+            ui_t0 = time.perf_counter()
 
             # Heatmap (display-only — detections/tracks come from CFAR, not this image)
             show_heatmap = self.params.child('heatmap').value()
@@ -373,10 +423,16 @@ class RadarGUI:
                         continue
                     age = (self.frame_count - fr) * dt_est
                     c = self._age_color(age)
+                    if c not in self._hist_style_cache:
+                        self._hist_style_cache[c] = (
+                            pg.mkPen(*c, 180, width=1.5),
+                            pg.mkBrush(*c, 120),
+                        )
+                    pen, brush = self._hist_style_cache[c]
                     hist_spots.append({
                         'pos': (v, r), 'symbol': 'star', 'size': 18,
-                        'pen': pg.mkPen(*c, 180, width=1.5),
-                        'brush': pg.mkBrush(*c, 120),
+                        'pen': pen,
+                        'brush': brush,
                     })
                 if hist_spots:
                     self.hist_det_plot.setData(spots=hist_spots)
@@ -472,12 +528,14 @@ class RadarGUI:
                 if trail_idx >= MAX_TRAILS:
                     break
                 if tid in active_ids:
-                    pen = pg.mkPen(color=(0, 200, 255, 150), width=2.5)
+                    pen = self._trail_active_pen
                 else:
                     pinfo = self._persist_tracks.get(tid)
                     age_s = (now_trail - pinfo['last_seen']) if pinfo else 0
                     c = self._age_color(age_s)
-                    pen = pg.mkPen(*c, 100, width=1.5)
+                    if c not in self._trail_style_cache:
+                        self._trail_style_cache[c] = pg.mkPen(*c, 100, width=1.5)
+                    pen = self._trail_style_cache[c]
                 self.trail_lines[trail_idx].setPen(pen)
                 self.trail_lines[trail_idx].setData(x=hist[:, 1], y=hist[:, 0])
                 trail_idx += 1
@@ -494,7 +552,7 @@ class RadarGUI:
                 self.tent_trk_plot.setData([], [])
 
             # ── Info panel ──
-            fps = self.frame_count / elapsed if elapsed > 0 else 0
+            fps_avg = self.frame_count / elapsed if elapsed > 0 else 0
             _W = 36
             _sec = lambda s: f"\u2500\u2500 {s} " + "\u2500" * max(0, _W - len(s) - 4)
 
@@ -533,7 +591,7 @@ class RadarGUI:
             # ── STATUS ──
             lines = [
                 _sec('STATUS'),
-                f" Frame {self.frame_count:<8} FPS {fps:.1f}",
+                f" Frame {self.frame_count:<8} FPS {self._fps_ema:.1f} (avg {fps_avg:.1f})",
                 f" Noise {diag['noise_floor_db']:.1f} dB",
                 f" MTI {cfg.mti_mode:<10} Chirps {cfg.num_chirps}",
                 f" Rng res {cfg.axes['range_res']:.2f} m"
@@ -595,14 +653,33 @@ class RadarGUI:
                         f"{v:+.2f}m/s", f"{az:+.0f}\u00b0", f"{dur_s:.1f}", f"{age_s:.0f}s"))
 
             self.info_label.setText('\n'.join(lines))
+            ui_t1 = time.perf_counter()
+            self._perf['ui_ms'] = (ui_t1 - ui_t0) * 1000.0
+            self._perf['total_ms'] = (ui_t1 - frame_t0) * 1000.0
 
             # Status bar
             flags = []
             if persist: flags.append("PERSIST")
             if not show_heatmap: flags.append("NO-HEATMAP")
+            cpi_ms = max(cfg.frame_time * 1000.0, 1e-6)
+            cpi_util = self._perf['total_ms'] / cpi_ms
+
+            if cpi_util > 1.0:
+                perf_state = 'over'
+            elif cpi_util > 0.8:
+                perf_state = 'warn'
+            else:
+                perf_state = 'ok'
+            if perf_state != self._status_perf_state:
+                self.status_bar.setStyleSheet(self._status_styles[perf_state])
+                self._status_perf_state = perf_state
+
             self.status_bar.showMessage(
-                f"FPS: {fps:.1f}   Range: {int(cfg.max_range)}m   "
-                f"Rx: {int(cfg.rx_gain)}dB   {' '.join(flags)}")
+                f"FPS i/e/a {self._fps_inst:.1f}/{self._fps_ema:.1f}/{fps_avg:.1f}  "
+                f"| ms C{self._perf['capture_ms']:.0f} P{self._perf['process_ms']:.0f} "
+                f"U{self._perf['ui_ms']:.0f} L{self._perf['log_ms']:.0f} T{self._perf['total_ms']:.0f}  "
+                f"| CPIx {cpi_util:.1f}  | R{int(cfg.max_range)}m Rx{int(cfg.rx_gain)}dB"
+                f" {' '.join(flags)}")
 
         except Exception as e:
             import traceback

@@ -38,9 +38,9 @@ class RadarConfig:
         self.cfar_guard_doppler = 3  # Number of guard cells in Doppler dimension.
         self.cfar_ref_range = 6  # Number of reference cells in range dimension.
         self.cfar_ref_doppler = 6  # Number of reference cells in Doppler dimension.
-        self.cfar_bias_db = 20.0  # Detection threshold offset above noise estimate (dB).
+        self.cfar_bias_db = 15.0  # Detection threshold offset above noise estimate (dB).
         self.cfar_method = 'average'  # CFAR noise estimation method.
-        self.cfar_min_cluster = 7  # Minimum cluster size to accept as a detection.
+        self.cfar_min_cluster = 3  # Minimum cluster size to accept as a detection.
 
         # ── Tracking ──
         self.tracking_enabled = True  # Enables/disables multi-target tracking.
@@ -48,6 +48,14 @@ class RadarConfig:
         self.track_confirm_n = 5  # Confirmation window length for M-of-N logic.
         self.track_max_misses = 3  # Max consecutive misses before deleting a track.
         self.track_gate_distance = 5.0  # Association gate radius for matching detections (m).
+        self.min_angle_confidence = 0.0  # Minimum monopulse confidence used for tracker updates.
+
+        # ── Calibration Policy ──
+        # Channel calibration is generally robust and useful; per-element gain/phase
+        # calibration can be environment-sensitive (multipath) and may hurt runtime
+        # performance if generated from poor calibration conditions.
+        self.use_channel_calibration = True
+        self.use_gain_phase_calibration = True
 
         # ── Display ──
         self.display_range_db = 30.0  # Dynamic display range for intensity visualization (dB).

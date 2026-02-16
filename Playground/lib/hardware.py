@@ -43,14 +43,25 @@ def init_hardware(cfg):
     # Initialize phaser
     phaser.configure(device_mode="rx")
     phaser.element_spacing = 0.014
-    phaser.load_gain_cal()
-    phaser.load_phase_cal()
+    apply_gp_cal = bool(getattr(cfg, 'use_gain_phase_calibration', False))
+
+    if apply_gp_cal:
+        try:
+            phaser.load_gain_cal()
+            phaser.load_phase_cal()
+            print("Gain/phase calibration: ENABLED")
+        except Exception:
+            apply_gp_cal = False
+            print("Gain/phase calibration files unavailable; falling back to uncalibrated array")
+    else:
+        print("Gain/phase calibration: DISABLED (channel-only mode)")
+
     for i in range(8):
         phaser.set_chan_phase(i, 0)
 
     gain_list = [127] * 8
     for i in range(len(gain_list)):
-        phaser.set_chan_gain(i, gain_list[i], apply_cal=True)
+        phaser.set_chan_gain(i, gain_list[i], apply_cal=apply_gp_cal)
 
     # GPIO setup
     phaser._gpios.gpio_tx_sw = 0
@@ -64,12 +75,17 @@ def init_hardware(cfg):
     sdr.gain_control_mode_chan0 = 'manual'
     sdr.gain_control_mode_chan1 = 'manual'
     # Apply channel calibration (compensates sub-array / SDR Rx gain mismatch)
-    try:
-        phaser.load_channel_cal()
-        ccal = phaser.ccal
-        print(f"Channel cal loaded: [{ccal[0]:.1f}, {ccal[1]:.1f}] dB")
-    except Exception:
+    if bool(getattr(cfg, 'use_channel_calibration', True)):
+        try:
+            phaser.load_channel_cal()
+            ccal = phaser.ccal
+            print(f"Channel cal loaded: [{ccal[0]:.1f}, {ccal[1]:.1f}] dB")
+        except Exception:
+            ccal = [0.0, 0.0]
+            print("Channel calibration: unavailable, using [0.0, 0.0] dB")
+    else:
         ccal = [0.0, 0.0]
+        print("Channel calibration: DISABLED")
     sdr.rx_hardwaregain_chan0 = int(cfg.rx_gain + ccal[0])
     sdr.rx_hardwaregain_chan1 = int(cfg.rx_gain + ccal[1])
 
@@ -172,6 +188,7 @@ def init_hardware(cfg):
         sdr_pins=sdr_pins,
         monopulse=monopulse,
         tracker=tracker,
+        channel_cal=tuple(ccal),
     )
 
     print(f"Sample rate: {cfg.sample_rate/1e6} MHz, Ramp time: {cfg.ramp_time} us, "
@@ -206,6 +223,15 @@ def apply_chirp_config(cfg, hw, new_num):
     Returns:
         True if the chirp count actually changed (axes need GUI update).
     """
+    try:
+        new_num = int(new_num)
+    except (TypeError, ValueError):
+        return False
+
+    # Keep runtime updates to practical powers-of-two used by the pipeline/GUI.
+    if new_num < 8:
+        return False
+
     if new_num == cfg.num_chirps:
         return False
 
@@ -213,14 +239,28 @@ def apply_chirp_config(cfg, hw, new_num):
 
     # Reconfigure TDD burst count
     hw.tdd.enable = False
-    hw.tdd.burst_count = cfg.num_chirps
-    hw.tdd.enable = True
+    try:
+        hw.tdd.burst_count = cfg.num_chirps
+    finally:
+        hw.tdd.enable = True
 
     # Recompute derived values (buffer, axes, frame time)
     ramp_time_actual = int(hw.phaser.freq_dev_time)
     cfg.recompute_derived(ramp_time_actual, hw.tdd.frame_length_ms, hw.tdd.channel[0].on_ms)
 
     hw.sdr.rx_buffer_size = cfg.buffer_size
+    # Force IIO RX buffer recreation so the new size takes effect immediately.
+    try:
+        hw.sdr.rx_destroy_buffer()
+    except Exception:
+        pass
+
+    # Flush first captures after reconfigure to avoid stale samples from pre-change DMA state.
+    try:
+        hw.sdr.rx()
+        hw.sdr.rx()
+    except Exception:
+        pass
 
     # Reset tracker with new frame time
     hw.tracker = KalmanTracker(
@@ -239,5 +279,24 @@ def apply_chirp_config(cfg, hw, new_num):
 
 def cleanup(hw):
     """Release hardware resources."""
-    hw.sdr.tx_destroy_buffer()
-    print("Pluto TX buffer cleared")
+    try:
+        hw.tdd.enable = False
+    except Exception:
+        pass
+
+    try:
+        hw.sdr_pins.gpio_phaser_enable = False
+    except Exception:
+        pass
+
+    try:
+        hw.sdr.rx_destroy_buffer()
+        print("Pluto RX buffer cleared")
+    except Exception:
+        pass
+
+    try:
+        hw.sdr.tx_destroy_buffer()
+        print("Pluto TX buffer cleared")
+    except Exception:
+        pass

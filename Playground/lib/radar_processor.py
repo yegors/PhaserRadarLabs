@@ -6,6 +6,7 @@ and MTI clutter filtering.
 """
 
 import numpy as np
+from functools import lru_cache
 
 
 def extract_chirps(raw_iq, num_chirps, samples_per_frame, good_samples, start_offset):
@@ -45,21 +46,20 @@ def apply_window_2d(chirps, range_window='hann', doppler_window='hann'):
         Windowed chirp array, same shape.
     """
     num_chirps, num_samples = chirps.shape
-    windowed = chirps.copy()
 
-    # Range window (applied along columns — each chirp independently)
-    if range_window != 'none':
-        rwin = _get_window(range_window, num_samples)
-        windowed *= rwin[np.newaxis, :]
+    rwin = None if range_window == 'none' else _get_window(range_window, num_samples)
+    dwin = None if doppler_window == 'none' else _get_window(doppler_window, num_chirps)
 
-    # Doppler window (applied along rows — across chirps at each range bin)
-    if doppler_window != 'none':
-        dwin = _get_window(doppler_window, num_chirps)
-        windowed *= dwin[:, np.newaxis]
-
-    return windowed
+    if rwin is None and dwin is None:
+        return chirps
+    if dwin is None:
+        return chirps * rwin[np.newaxis, :]
+    if rwin is None:
+        return chirps * dwin[:, np.newaxis]
+    return chirps * (dwin[:, np.newaxis] * rwin[np.newaxis, :])
 
 
+@lru_cache(maxsize=32)
 def _get_window(name, length):
     """Return a window of the given type and length."""
     if name == 'blackmanharris':

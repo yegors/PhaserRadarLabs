@@ -44,9 +44,8 @@ import pyqtgraph as pg
 # =============================================================================
 # STAGE 0: System Setup
 # =============================================================================
-# Allow Ctrl+C to kill the process even inside the Qt event loop.
-# Without this, Qt swallows SIGINT and the only way to stop is closing the window.
-signal.signal(signal.SIGINT, signal.SIG_DFL)
+# Allow Ctrl+C handling to be installed after GUI creation so we can request
+# a graceful Qt shutdown (instead of interrupting NumPy/Qt internals).
 
 # Set global PyQtGraph options BEFORE any widget is created.
 # Dark theme (GitHub-dark inspired), no antialiasing for speed on Raspberry Pi.
@@ -244,6 +243,17 @@ hw = init_hardware(cfg)
 from lib.gui import RadarGUI
 
 gui = RadarGUI(cfg, hw)
+
+
+def _handle_sigint(_signum, _frame):
+  try:
+    gui.win.close()
+    gui.app.quit()
+  except Exception:
+    pass
+
+
+signal.signal(signal.SIGINT, _handle_sigint)
 
 # =============================================================================
 # STAGE 4: Run & Cleanup

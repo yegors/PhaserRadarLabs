@@ -9,6 +9,53 @@ with guard cells to prevent target self-masking.
 
 import numpy as np
 from scipy import ndimage
+from functools import lru_cache
+
+
+@lru_cache(maxsize=32)
+def _average_kernel(ref_range, ref_doppler, guard_range, guard_doppler):
+    """Return CA-CFAR kernel and reference-cell count."""
+    kernel_rows = 2 * (guard_doppler + ref_doppler) + 1
+    kernel_cols = 2 * (guard_range + ref_range) + 1
+    kernel = np.ones((kernel_rows, kernel_cols), dtype=float)
+    r_start = ref_doppler
+    r_end = ref_doppler + 2 * guard_doppler + 1
+    c_start = ref_range
+    c_end = ref_range + 2 * guard_range + 1
+    kernel[r_start:r_end, c_start:c_end] = 0.0
+    num_ref_cells = float(np.sum(kernel))
+    return kernel, num_ref_cells
+
+
+@lru_cache(maxsize=32)
+def _goso_kernels(ref_range, ref_doppler, guard_range, guard_doppler):
+    """Return GO/SO-CFAR split kernels and reference-cell counts."""
+    kernel_rows = 2 * (guard_doppler + ref_doppler) + 1
+    kernel_cols = 2 * (guard_range + ref_range) + 1
+
+    kernel_lead = np.zeros((kernel_rows, kernel_cols), dtype=float)
+    kernel_lead[:ref_doppler, :] = 1.0
+    kernel_trail = np.zeros((kernel_rows, kernel_cols), dtype=float)
+    kernel_trail[-ref_doppler:, :] = 1.0
+
+    kernel_left = np.zeros((kernel_rows, kernel_cols), dtype=float)
+    kernel_left[:, :ref_range] = 1.0
+    kernel_right = np.zeros((kernel_rows, kernel_cols), dtype=float)
+    kernel_right[:, -ref_range:] = 1.0
+
+    kernel_a = np.clip(kernel_lead + kernel_left, 0.0, 1.0)
+    kernel_b = np.clip(kernel_trail + kernel_right, 0.0, 1.0)
+
+    r_start = ref_doppler
+    r_end = ref_doppler + 2 * guard_doppler + 1
+    c_start = ref_range
+    c_end = ref_range + 2 * guard_range + 1
+    kernel_a[r_start:r_end, c_start:c_end] = 0.0
+    kernel_b[r_start:r_end, c_start:c_end] = 0.0
+
+    n_a = float(max(np.sum(kernel_a), 1.0))
+    n_b = float(max(np.sum(kernel_b), 1.0))
+    return kernel_a, kernel_b, n_a, n_b
 
 
 def cfar_2d(rd_map, guard_range=2, guard_doppler=2,
@@ -29,6 +76,8 @@ def cfar_2d(rd_map, guard_range=2, guard_doppler=2,
         threshold: The adaptive threshold map in dB.
     """
     rows, cols = rd_map.shape
+    rd_power = 10 ** (rd_map / 10.0)
+    bias_lin = 10 ** (bias_db / 10.0)
 
     # Build the CFAR kernel: a rectangular annulus
     # Outer window includes reference + guard + CUT
@@ -42,60 +91,34 @@ def cfar_2d(rd_map, guard_range=2, guard_doppler=2,
     kernel_cols = 2 * outer_w + 1
 
     if method == 'average':
-        # Build a single kernel with 1s in reference region, 0s in guard+CUT
-        kernel = np.ones((kernel_rows, kernel_cols))
-        # Zero out the guard + CUT region in the center
-        r_start = ref_doppler
-        r_end = ref_doppler + 2 * guard_doppler + 1
-        c_start = ref_range
-        c_end = ref_range + 2 * guard_range + 1
-        kernel[r_start:r_end, c_start:c_end] = 0
-
-        num_ref_cells = np.sum(kernel)
+        kernel, num_ref_cells = _average_kernel(
+            ref_range, ref_doppler, guard_range, guard_doppler,
+        )
         # Convolve to get sum of reference cells at each position
-        ref_sum = ndimage.convolve(rd_map, kernel, mode='reflect')
-        threshold = ref_sum / num_ref_cells + bias_db
+        ref_sum = ndimage.convolve(rd_power, kernel, mode='reflect')
+        noise_power = ref_sum / num_ref_cells
+        threshold_power = noise_power * bias_lin
 
     elif method in ('greatest', 'smallest'):
         # Split into leading/trailing halves for both dimensions
         # For GO/SO-CFAR, compute the mean from each half and take max/min
 
-        # Leading half kernel (cells before the CUT in both dimensions)
-        kernel_lead = np.zeros((kernel_rows, kernel_cols))
-        kernel_lead[:ref_doppler, :] = 1  # top rows
-        kernel_trail = np.zeros((kernel_rows, kernel_cols))
-        kernel_trail[-ref_doppler:, :] = 1  # bottom rows
+        kernel_a, kernel_b, n_a, n_b = _goso_kernels(
+            ref_range, ref_doppler, guard_range, guard_doppler,
+        )
 
-        # Also include side reference cells
-        kernel_left = np.zeros((kernel_rows, kernel_cols))
-        kernel_left[:, :ref_range] = 1
-        kernel_right = np.zeros((kernel_rows, kernel_cols))
-        kernel_right[:, -ref_range:] = 1
-
-        # Combine leading = top + left, trailing = bottom + right
-        kernel_a = np.clip(kernel_lead + kernel_left, 0, 1)
-        kernel_b = np.clip(kernel_trail + kernel_right, 0, 1)
-
-        # Zero out guard+CUT in both
-        kernel_a[ref_doppler:ref_doppler + 2*guard_doppler+1,
-                 ref_range:ref_range + 2*guard_range+1] = 0
-        kernel_b[ref_doppler:ref_doppler + 2*guard_doppler+1,
-                 ref_range:ref_range + 2*guard_range+1] = 0
-
-        n_a = max(np.sum(kernel_a), 1)
-        n_b = max(np.sum(kernel_b), 1)
-
-        mean_a = ndimage.convolve(rd_map, kernel_a, mode='reflect') / n_a
-        mean_b = ndimage.convolve(rd_map, kernel_b, mode='reflect') / n_b
+        mean_a = ndimage.convolve(rd_power, kernel_a, mode='reflect') / n_a
+        mean_b = ndimage.convolve(rd_power, kernel_b, mode='reflect') / n_b
 
         if method == 'greatest':
-            threshold = np.maximum(mean_a, mean_b) + bias_db
+            threshold_power = np.maximum(mean_a, mean_b) * bias_lin
         else:
-            threshold = np.minimum(mean_a, mean_b) + bias_db
+            threshold_power = np.minimum(mean_a, mean_b) * bias_lin
     else:
         raise ValueError(f"Unknown CFAR method: {method}")
 
-    detections = rd_map > threshold
+    threshold = 10 * np.log10(threshold_power + 1e-20)
+    detections = rd_power > threshold_power
     return detections, threshold
 
 
@@ -133,7 +156,7 @@ def cluster_detections(detections, rd_map, range_axis, velocity_axis):
         pixel_count = np.sum(mask)
 
         # Power-weighted centroid
-        powers_linear = 10 ** (rd_map[mask] / 20)  # convert dB to linear for weighting
+        powers_linear = 10 ** (rd_map[mask] / 10.0)  # convert dB power to linear for weighting
         total_power = np.sum(powers_linear)
 
         doppler_indices, range_indices = np.where(mask)
